@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitQR Connect Pro - Plataforma Profissional Inteligente</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        dark: '#0f172a',
+                        panel: '#1e293b',
+                        primary: '#10b981', // Emerald 500
+                        primaryHover: '#059669', // Emerald 600
+                        accent: '#3b82f6', // Blue 500
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        
+        .mobile-simulator {
+            width: 100%;
+            max-width: 390px;
+            height: 780px;
+            max-height: 85vh;
+            margin: 0 auto;
+            border-radius: 38px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+            border: 8px solid #334155;
+            position: relative;
+            background-color: #0f172a;
+        }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.88);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .spinner {
+            border: 3px solid rgba(16, 185, 129, 0.2);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #10b981;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-dark text-slate-200 font-sans antialiased min-h-screen flex flex-col">
+
+    <nav class="bg-panel border-b border-slate-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <div class="bg-primary text-dark p-2 rounded-lg shadow-lg shadow-primary/20">
+                        <i class="fa-solid fa-qrcode text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="font-bold text-xl tracking-tight text-white">FitQR <span class="text-primary">Connect Pro</span></span>
+                        <span class="block text-[10px] text-slate-400 font-medium">Sincronizado com Google Sheets</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div id="sync-status" class="hidden sm:flex items-center gap-2 text-xs text-primary bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-full font-medium">
+                        <i class="fa-solid fa-cloud-arrow-down"></i> <span id="sync-count">0</span> Aparelhos Carregados
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="switchView('admin')" id="btn-admin" class="px-4 py-2 rounded-md text-sm font-medium bg-primary text-dark transition-colors flex items-center gap-2">
+                            <i class="fa-solid fa-chart-pie"></i>Dashboard
+                        </button>
+                        <button onclick="switchView('aluno')" id="btn-aluno" class="px-4 py-2 rounded-md text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition-colors flex items-center gap-2">
+                            <i class="fa-solid fa-mobile-screen"></i>Simulador Mobile
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center">
+
+        <!-- ========================================== -->
+        <!-- VIEW 1: ADMIN DASHBOARD                    -->
+        <!-- ========================================== -->
+        <div id="view-admin" class="space-y-6">
+            
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-white">Painel de Controle da Academia</h1>
+                    <p class="text-slate-400 text-sm mt-1">Integração Direta com Google Sheets (603+ Aparelhos)</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="abrirConfiguracaoPlanilha()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                        <i class="fa-solid fa-link text-primary"></i> Vincular URL da Planilha
+                    </button>
+                    <button onclick="carregarDadosPlanilha()" class="bg-primary hover:bg-primaryHover text-dark font-semibold px-4 py-2 rounded-lg text-sm transition shadow-lg shadow-primary/25 flex items-center gap-2">
+                        <i class="fa-solid fa-rotate"></i> Sincronizar Dados
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-panel p-6 rounded-xl border border-slate-700 shadow-sm flex items-center gap-4">
+                    <div class="p-4 bg-primary/20 text-primary rounded-lg">
+                        <i class="fa-solid fa-expand text-2xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-400 font-medium">Aparelhos Conectados</p>
+                        <p class="text-2xl font-bold text-white" id="stat-total">0</p>
+                    </div>
+                </div>
+                <div class="bg-panel p-6 rounded-xl border border-slate-700 shadow-sm flex items-center gap-4">
+                    <div class="p-4 bg-accent/20 text-accent rounded-lg">
+                        <i class="fa-solid fa-mobile-button text-2xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-400 font-medium">Leituras Registradas</p>
+                        <p class="text-2xl font-bold text-white">1.482</p>
+                    </div>
+                </div>
+                <div class="bg-panel p-6 rounded-xl border border-slate-700 shadow-sm flex items-center gap-4">
+                    <div class="p-4 bg-purple-500/20 text-purple-400 rounded-lg">
+                        <i class="fa-solid fa-shield-halved text-2xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-400 font-medium">Status do Sistema</p>
+                        <p class="text-2xl font-bold text-white">Online (Google Drive)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela Centralizada de Exercícios -->
+            <div class="bg-panel rounded-xl border border-slate-700 overflow-hidden shadow-sm">
+                <div class="px-6 py-4 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-800/50">
+                    <h2 class="font-semibold text-white">Biblioteca Central de Exercícios Sincronizada</h2>
+                    <div class="relative w-full sm:w-auto">
+                        <i class="fa-solid fa-search absolute left-3 top-3 text-slate-400 text-sm"></i>
+                        <input type="text" id="filtro-busca" onkeyup="filtrarTabela()" placeholder="Buscar por exercício ou grupo..." class="bg-dark border border-slate-600 text-sm rounded-lg pl-9 pr-4 py-2 focus:ring-primary focus:border-primary w-full sm:w-80 text-white">
+                    </div>
+                </div>
+                <div class="overflow-x-auto max-h-[500px]">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs text-slate-400 uppercase bg-slate-800/30 sticky top-0 backdrop-blur">
+                            <tr>
+                                <th class="px-6 py-4 font-medium">ID</th>
+                                <th class="px-6 py-4 font-medium">Exercício</th>
+                                <th class="px-6 py-4 font-medium">Grupo Muscular</th>
+                                <th class="px-6 py-4 font-medium">Nível</th>
+                                <th class="px-6 py-4 text-right font-medium">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-exercicios" class="divide-y divide-slate-700/50">
+                            <!-- Preenchido dinamicamente via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 2: MOBILE SIMULATOR                   -->
+        <!-- ========================================== -->
+        <div id="view-aluno" class="hidden h-full flex flex-col lg:flex-row items-center justify-center gap-10">
+            
+            <div class="w-full lg:w-1/3 bg-panel p-6 rounded-2xl border border-slate-700 shadow-xl space-y-4">
+                <div>
+                    <h2 class="text-xl font-bold text-white mb-2"><i class="fa-solid fa-vr-cardboard text-primary mr-2"></i>Simulador NFC / QR Code</h2>
+                    <p class="text-sm text-slate-400">Selecione qualquer aparelho da sua planilha para simular instantaneamente a leitura feita pelo smartphone do aluno.</p>
+                </div>
+                <hr class="border-slate-700">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Aparelho / Exercício Vinculado:</label>
+                    <select id="simulador-select" onchange="carregarVisaoAluno()" class="w-full bg-dark border border-slate-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-primary focus:outline-none cursor-pointer">
+                        <!-- Preenchido via JS -->
+                    </select>
+                </div>
+                <div class="bg-primary/10 border border-primary/30 p-4 rounded-xl flex items-start gap-3 mt-4">
+                    <i class="fa-solid fa-circle-info text-primary mt-0.5"></i>
+                    <p class="text-xs text-slate-300">Ao aproximar o celular do chip NFC no aparelho físico, esta exata tela abre no navegador do aluno sem travamentos.</p>
+                </div>
+            </div>
+
+            <!-- O Celular do Aluno -->
+            <div class="mobile-simulator bg-black flex flex-col">
+                <div class="h-6 flex justify-between items-center px-4 pt-1 text-[10px] text-white/80 absolute top-0 w-full z-20 bg-dark/50 backdrop-blur">
+                    <span>9:41</span>
+                    <div class="flex space-x-1 items-center">
+                        <i class="fa-solid fa-signal"></i>
+                        <i class="fa-solid fa-wifi"></i>
+                        <i class="fa-solid fa-battery-full"></i>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-y-auto no-scrollbar relative w-full h-full pb-24">
+                    
+                    <!-- Media Header -->
+                    <div class="relative w-full h-[42%] bg-slate-900 flex items-center justify-center">
+                        <img id="mobile-img" src="" alt="Demonstração GIF" class="w-full h-full object-cover opacity-95" onerror="this.src='https://placehold.co/600x400/1e293b/10b981?text=GIF+Indisponivel'">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-transparent to-transparent"></div>
+                        
+                        <div class="absolute top-8 right-4 bg-black/60 backdrop-blur px-3 py-1 rounded-full border border-white/10 flex items-center gap-2">
+                            <img src="https://ui-avatars.com/api/?name=Alpha+Fit&background=10b981&color=fff" class="w-4 h-4 rounded-full">
+                            <span class="text-[10px] font-semibold text-white">Alpha Fit</span>
+                        </div>
+                    </div>
+
+                    <!-- Conteúdo do Aluno -->
+                    <div class="px-5 -mt-6 relative z-10 space-y-5">
+                        <div class="flex gap-2 flex-wrap">
+                            <span id="mobile-grupo" class="px-3 py-1 bg-slate-800 border border-slate-700 text-xs font-semibold text-primary rounded-full uppercase tracking-wider"></span>
+                            <span id="mobile-nivel" class="px-3 py-1 bg-slate-800 border border-slate-700 text-xs font-medium text-slate-300 rounded-full"></span>
+                        </div>
+
+                        <h2 id="mobile-nome" class="text-2xl font-bold text-white leading-tight"></h2>
+
+                        <div class="space-y-3">
+                            <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-list-check text-primary"></i> Instruções de Execução
+                            </h3>
+                            <ul id="mobile-instrucoes" class="space-y-2.5">
+                                <!-- Injetado via JS -->
+                            </ul>
+                        </div>
+
+                        <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex gap-3 items-start">
+                            <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5"></i>
+                            <div>
+                                <h4 class="text-xs font-semibold text-red-400 uppercase tracking-wider mb-1">Atenção & Postura</h4>
+                                <p id="mobile-aviso" class="text-xs text-red-200/90 leading-relaxed"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Floating Bottom Action -->
+                <div class="absolute bottom-0 w-full p-4 glass-panel z-30">
+                    <button onclick="chamarProfessor()" class="w-full bg-slate-800 text-white border border-slate-600 hover:bg-slate-700 font-medium py-3 rounded-xl transition shadow-lg flex items-center justify-center gap-2 text-sm">
+                        <div class="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                            <i class="fa-solid fa-hand-sparkles text-xs"></i>
+                        </div>
+                        Chamar Instrutor ao Aparelho
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal de Configuração de URL da Planilha -->
+    <div id="modal-config" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-panel border border-slate-700 max-w-md w-full p-6 rounded-2xl shadow-2xl space-y-4">
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-link text-primary"></i> URL de Sincronização Google Sheets
+            </h3>
+            <p class="text-xs text-slate-400">Cole abaixo o link CSV público da sua planilha do Google Sheets para puxar todos os 603 exercícios automaticamente:</p>
+            <div>
+                <input type="text" id="input-planilha-url" placeholder="https://docs.google.com/spreadsheets/d/.../export?format=csv" class="w-full bg-dark border border-slate-600 rounded-lg p-3 text-xs text-white focus:ring-primary focus:border-primary">
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button onclick="fecharConfiguracaoPlanilha()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-medium transition">Cancelar</button>
+                <button onclick="salvarEAtualizarPlanilha()" class="px-4 py-2 bg-primary hover:bg-primaryHover text-dark font-semibold rounded-lg text-xs transition">Salvar & Sincronizar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-800 border border-slate-600 text-white px-5 py-3 rounded-xl shadow-2xl z-50 transform translate-y-32 opacity-0 transition-all duration-300 flex items-center gap-3">
+        <i id="toast-icon" class="fa-solid fa-check text-primary"></i>
+        <span id="toast-msg" class="text-sm">Ação realizada com sucesso!</span>
+    </div>
+
+    <script>
+        // Banco de Dados padrão inicial (Fallback caso a planilha externa ainda não esteja configurada)
+        let bancoDeDados = [
+            {
+                ID_Exercicio: "ex_1",
+                Nome: "SUPINO RETO COM BARRA",
+                Grupo_Muscular: "Peitoral",
+                Nivel: "Intermediário",
+                URL_Capa: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&q=80&w=800",
+                Instrucoes: "Deite-se no banco com os olhos alinhados à barra.|Segure a barra com pegada um pouco mais aberta que os ombros.|Desça controladamente até próximo ao peito.|Empurre para cima expirando o ar.",
+                Avisos: "Mantenha os pés firmes no chão e não descole a lombar do banco."
+            },
+            {
+                ID_Exercicio: "ex_2",
+                Nome: "PUXADA FRONTAL NA POLIA",
+                Grupo_Muscular: "Costas / Dorsal",
+                Nivel: "Iniciante",
+                URL_Capa: "https://images.unsplash.com/photo-1603287681836-b174ce5074c2?auto=format&fit=crop&q=80&w=800",
+                Instrucoes: "Ajuste o rolete para prender bem as coxas.|Segure a barra com pegada aberta.|Incline o tronco levemente para trás e puxe a barra em direção ao peito superior.|Retorne controlando o peso, alongando as costas.",
+                Avisos: "Evite usar o impulso do corpo jogando as costas para trás de forma exagerada."
+            },
+            {
+                ID_Exercicio: "ex_3",
+                Nome: "LEG PRESS 45º",
+                Grupo_Muscular: "Membros Inferiores",
+                Nivel: "Iniciante",
+                URL_Capa: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=800",
+                Instrucoes: "Apoie as costas e cabeça firmemente no encosto.|Posicione os pés na plataforma na largura dos ombros.|Destrave o aparelho e desça controlando até 90 graus.|Empurre a plataforma sem esticar os joelhos completamente no final.",
+                Avisos: "NUNCA faça hiperextensão total dos joelhos no topo do movimento."
+            }
+        ];
+
+        // URL padrão do CSV da Planilha do Google Sheets (se salva no localStorage)
+        let planilhaCSVUrl = localStorage.getItem('fitqr_sheets_url') || "";
+
+        function switchView(view) {
+            const viewAdmin = document.getElementById('view-admin');
+            const viewAluno = document.getElementById('view-aluno');
+            const btnAdmin = document.getElementById('btn-admin');
+            const btnAluno = document.getElementById('btn-aluno');
+
+            if (view === 'admin') {
+                viewAdmin.classList.remove('hidden');
+                viewAluno.classList.add('hidden');
+                btnAdmin.className = "px-4 py-2 rounded-md text-sm font-medium bg-primary text-dark transition-colors flex items-center gap-2";
+                btnAluno.className = "px-4 py-2 rounded-md text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition-colors flex items-center gap-2";
+            } else {
+                viewAdmin.classList.add('hidden');
+                viewAluno.classList.remove('hidden');
+                viewAluno.classList.add('flex');
+                btnAluno.className = "px-4 py-2 rounded-md text-sm font-medium bg-primary text-dark transition-colors flex items-center gap-2";
+                btnAdmin.className = "px-4 py-2 rounded-md text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition-colors flex items-center gap-2";
+                carregarVisaoAluno();
+            }
+        }
+
+        function mostrarToast(mensagem, icone = "fa-check") {
+            const toast = document.getElementById('toast');
+            const msg = document.getElementById('toast-msg');
+            const iconEl = document.getElementById('toast-icon');
+            
+            msg.innerText = mensagem;
+            iconEl.className = `fa-solid ${icone} text-primary`;
+            
+            toast.classList.remove('translate-y-32', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-32', 'opacity-0');
+            }, 3500);
+        }
+
+        async function carregarDadosPlanilha() {
+            if (!planilhaCSVUrl) {
+                renderizarTabela(bancoDeDados);
+                return;
+            }
+
+            mostrarToast("Sincronizando com Google Sheets...", "fa-rotate fa-spin");
+
+            try {
+                const response = await fetch(planilhaCSVUrl);
+                const csvText = await response.text();
+                
+                const linhas = csvText.split('\n');
+                const novosDados = [];
+                
+                // Ignora o cabeçalho (linha 0) e processa o CSV
+                for (let i = 1; i < linhas.length; i++) {
+                    let linha = linhas[i].trim();
+                    if (!linha) continue;
+                    
+                    // Tratamento simples de colunas separadas por vírgula ou ponto e vírgula
+                    let colunas = parseCSVLine(linha);
+                    
+                    if (colunas.length >= 5) {
+                        novosDados.push({
+                            ID_Exercicio: colunas[0] || `ex_${i}`,
+                            Nome: colunas[1] || `Exercício ${i}`,
+                            Grupo_Muscular: colunas[2] || "Geral",
+                            Nivel: colunas[3] || "Iniciante",
+                            URL_Capa: colunas[4] || "https://placehold.co/600x400/1e293b/10b981?text=GIF",
+                            Instrucoes: colunas[5] || "Posicione-se corretamente.|Execute com controle.|Respire corretamente.",
+                            Avisos: colunas[6] || "Mantenha a postura correta e evite movimentos bruscos."
+                        });
+                    }
+                }
+
+                if (novosDados.length > 0) {
+                    bancoDeDados = novosDados;
+                    mostrarToast(`Sucesso! ${bancoDeDados.length} aparelhos sincronizados.`);
+                }
+            } catch (err) {
+                console.error("Erro ao sincronizar planilha:", err);
+                mostrarToast("Erro ao sincronizar. Usando base local.", "fa-triangle-exclamation");
+            }
+
+            renderizarTabela(bancoDeDados);
+            atualizarContadorSync();
+        }
+
+        function parseCSVLine(text) {
+            let result = [];
+            let cell = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < text.length; i++) {
+                let char = text[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if ((char === ',' || char === ';') && !inQuotes) {
+                    result.push(cell.trim().replace(/^"|"$/g, ''));
+                    cell = '';
+                } else {
+                    cell += char;
+                }
+            }
+            result.push(cell.trim().replace(/^"|"$/g, ''));
+            return result;
+        }
+
+        function atualizarContadorSync() {
+            const badge = document.getElementById('sync-status');
+            const count = document.getElementById('sync-count');
+            count.innerText = bancoDeDados.length;
+            badge.classList.remove('hidden');
+        }
+
+        function abrirConfiguracaoPlanilha() {
+            document.getElementById('input-planilha-url').value = planilhaCSVUrl;
+            document.getElementById('modal-config').classList.remove('hidden');
+        }
+
+        function fecharConfiguracaoPlanilha() {
+            document.getElementById('modal-config').classList.add('hidden');
+        }
+
+        function salvarEAtualizarPlanilha() {
+            const urlInput = document.getElementById('input-planilha-url').value.trim();
+            planilhaCSVUrl = urlInput;
+            localStorage.setItem('fitqr_sheets_url', planilhaCSVUrl);
+            fecharConfiguracaoPlanilha();
+            carregarDadosPlanilha();
+        }
+
+        function renderizarTabela(dadosParaRenderizar = bancoDeDados) {
+            const tbody = document.getElementById('tabela-exercicios');
+            const selectSimulador = document.getElementById('simulador-select');
+            
+            tbody.innerHTML = '';
+            selectSimulador.innerHTML = '';
+
+            document.getElementById('stat-total').innerText = bancoDeDados.length;
+
+            dadosParaRenderizar.forEach(ex => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-800/50 transition">
+                        <td class="px-6 py-4 font-mono text-xs text-slate-400">${ex.ID_Exercicio}</td>
+                        <td class="px-6 py-4 font-medium text-white flex items-center gap-3">
+                            <img src="${ex.URL_Capa}" class="w-9 h-9 rounded object-cover border border-slate-600 bg-slate-900" onerror="this.src='https://placehold.co/100x100/1e293b/10b981?text=GIF'">
+                            ${ex.Nome}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="bg-slate-800 text-primary border border-primary/20 px-2.5 py-1 rounded-full text-xs font-semibold uppercase">${ex.Grupo_Muscular}</span>
+                        </td>
+                        <td class="px-6 py-4 text-slate-300 text-sm">${ex.Nivel}</td>
+                        <td class="px-6 py-4 text-right">
+                            <button onclick="testarExercicio('${ex.ID_Exercicio}')" class="text-slate-400 hover:text-primary transition bg-slate-800 px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700 shadow-sm">Testar Mobile</button>
+                        </td>
+                    </tr>
+                `;
+
+                selectSimulador.innerHTML += `<option value="${ex.ID_Exercicio}">${ex.Nome} (${ex.Grupo_Muscular})</option>`;
+            });
+        }
+
+        function filtrarTabela() {
+            const termo = document.getElementById('filtro-busca').value.toLowerCase();
+            const filtrados = bancoDeDados.filter(ex => 
+                ex.Nome.toLowerCase().includes(termo) || 
+                ex.Grupo_Muscular.toLowerCase().includes(termo) ||
+                ex.ID_Exercicio.toLowerCase().includes(termo)
+            );
+            renderizarTabela(filtrados);
+        }
+
+        function testarExercicio(id) {
+            document.getElementById('simulador-select').value = id;
+            switchView('aluno');
+        }
+
+        function carregarVisaoAluno() {
+            const idSelecionado = document.getElementById('simulador-select').value;
+            const ex = bancoDeDados.find(item => item.ID_Exercicio === idSelecionado) || bancoDeDados[0];
+
+            if (!ex) return;
+
+            document.getElementById('mobile-img').src = ex.URL_Capa;
+            document.getElementById('mobile-grupo').innerText = ex.Grupo_Muscular;
+            document.getElementById('mobile-nivel').innerText = ex.Nivel;
+            document.getElementById('mobile-nome').innerText = ex.Nome;
+            document.getElementById('mobile-aviso').innerText = ex.Avisos;
+
+            const passos = ex.Instrucoes ? ex.Instrucoes.split('|') : ["Siga a execução correta."];
+            const ulInstrucoes = document.getElementById('mobile-instrucoes');
+            ulInstrucoes.innerHTML = passos.map((passo, index) => `
+                <li class="flex items-start gap-3 bg-panel/70 border border-slate-700/50 p-3 rounded-xl">
+                    <span class="flex-shrink-0 w-5 h-5 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center text-[10px] font-bold text-primary mt-0.5">
+                        ${index + 1}
+                    </span>
+                    <p class="text-xs text-slate-200 leading-relaxed">${passo.trim()}</p>
+                </li>
+            `).join('');
+        }
+
+        function chamarProfessor() {
+            mostrarToast("Instrutor notificado e a caminho do aparelho!", "fa-bell");
+        }
+
+        window.onload = () => {
+            carregarDadosPlanilha();
+        };
+    </script>
+</body>
+</html>
