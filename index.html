@@ -2,535 +2,717 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FitQR Connect Pro - Plataforma Profissional Inteligente</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0A0A0A">
+    <title>ScanFit - Seu movimento com precisão</title>
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- PapaParse -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        dark: '#0f172a',
-                        panel: '#1e293b',
-                        primary: '#10b981', // Emerald 500
-                        primaryHover: '#059669', // Emerald 600
-                        accent: '#3b82f6', // Blue 500
+                        scanfit: {
+                            green: '#8FE302',
+                            greenHover: '#7bc202',
+                            dark: '#0A0A0A',
+                            card: '#161616',
+                            gray: '#A0A0A0',
+                            panel: '#111111'
+                        }
                     }
                 }
             }
         }
     </script>
+
     <style>
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
-        
-        .mobile-simulator {
-            width: 100%;
-            max-width: 390px;
-            height: 780px;
-            max-height: 85vh;
-            margin: 0 auto;
-            border-radius: 38px;
-            overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-            border: 8px solid #334155;
-            position: relative;
-            background-color: #0f172a;
+        /* ==========================================
+           BARREIRA DE SEGURANÇA (Anti-cópia)
+           ========================================== */
+        body {
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10 and IE 11 */
+            user-select: none; /* Standard syntax */
+            -webkit-touch-callout: none; /* iOS Safari */
+            background-color: #0A0A0A;
+            color: #FFFFFF;
+            -webkit-tap-highlight-color: transparent;
         }
-        
+
+        img { pointer-events: none; } /* Impede arrastar imagens */
+
+        /* ==========================================
+           ESTILOS GERAIS & SCROLLBAR
+           ========================================== */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.88);
-            backdrop-filter: blur(12px);
-            border-top: 1px solid rgba(255,255,255,0.1);
+        /* Emulando view mobile no Desktop */
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: #0A0A0A;
+            position: relative;
+            box-shadow: 0 0 50px rgba(143, 227, 2, 0.05);
+            display: flex;
+            flex-direction: column;
         }
 
-        .spinner {
-            border: 3px solid rgba(16, 185, 129, 0.2);
-            width: 36px;
-            height: 36px;
+        .glass-header {
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-nav {
+            background: rgba(22, 22, 22, 0.95);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .bg-landing {
+            background: linear-gradient(to bottom, rgba(10,10,10,0.3) 0%, rgba(10,10,10,1) 90%), url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=800') center/cover;
+        }
+
+        .loader {
+            border: 3px solid rgba(143, 227, 2, 0.2);
+            border-top: 3px solid #8FE302;
             border-radius: 50%;
-            border-left-color: #10b981;
+            width: 32px;
+            height: 32px;
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="bg-dark text-slate-200 font-sans antialiased min-h-screen flex flex-col">
+<body class="antialiased font-sans">
 
-    <nav class="bg-panel border-b border-slate-800 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center gap-3">
-                    <div class="bg-primary text-dark p-2 rounded-lg shadow-lg shadow-primary/20">
-                        <i class="fa-solid fa-qrcode text-xl"></i>
-                    </div>
-                    <div>
-                        <span class="font-bold text-xl tracking-tight text-white">FitQR <span class="text-primary">Connect Pro</span></span>
-                        <span class="block text-[10px] text-slate-400 font-medium">Sincronizado com Google Sheets</span>
-                    </div>
-                </div>
-                <div class="flex items-center gap-3">
-                    <div id="sync-status" class="hidden sm:flex items-center gap-2 text-xs text-primary bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-full font-medium">
-                        <i class="fa-solid fa-cloud-arrow-down"></i> <span id="sync-count">0</span> Aparelhos Carregados
-                    </div>
-                    <div class="flex space-x-2">
-                        <button onclick="switchView('admin')" id="btn-admin" class="px-4 py-2 rounded-md text-sm font-medium bg-primary text-dark transition-colors flex items-center gap-2">
-                            <i class="fa-solid fa-chart-pie"></i>Dashboard
-                        </button>
-                        <button onclick="switchView('aluno')" id="btn-aluno" class="px-4 py-2 rounded-md text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition-colors flex items-center gap-2">
-                            <i class="fa-solid fa-mobile-screen"></i>Simulador Mobile
-                        </button>
-                    </div>
-                </div>
+    <!-- Container principal (Mobile Limitado no Desktop) -->
+    <div class="app-container">
+
+        <!-- ==========================================
+             CABEÇALHO GLOBAL
+             ========================================== -->
+        <header class="glass-header sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <!-- LOGO ORIGINAL (Carrega logo.png) -->
+                <img src="logo.png" alt="ScanFit Logo" class="h-8 object-contain" onerror="this.src='https://placehold.co/150x50/0A0A0A/8FE302?text=ScanFit&font=Montserrat'">
             </div>
-        </div>
-    </nav>
+            <div id="header-status" class="w-2 h-2 rounded-full bg-scanfit-gray animate-pulse" title="Sincronizando..."></div>
+        </header>
 
-    <main class="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center">
-
-        <!-- ========================================== -->
-        <!-- VIEW 1: ADMIN DASHBOARD                    -->
-        <!-- ========================================== -->
-        <div id="view-admin" class="space-y-6">
+        <!-- ==========================================
+             ÁREA DE CONTEÚDO
+             ========================================== -->
+        <main class="flex-1 overflow-y-auto no-scrollbar pb-24 relative" id="main-content">
             
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-                <div>
-                    <h1 class="text-2xl font-bold text-white">Painel de Controle da Academia</h1>
-                    <p class="text-slate-400 text-sm mt-1">Integração Direta com Google Sheets (603+ Aparelhos)</p>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    <button onclick="abrirConfiguracaoPlanilha()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-                        <i class="fa-solid fa-link text-primary"></i> Vincular URL da Planilha
-                    </button>
-                    <button onclick="carregarDadosPlanilha()" class="bg-primary hover:bg-primaryHover text-dark font-semibold px-4 py-2 rounded-lg text-sm transition shadow-lg shadow-primary/25 flex items-center gap-2">
-                        <i class="fa-solid fa-rotate"></i> Sincronizar Dados
-                    </button>
-                </div>
-            </div>
-
-            <!-- Stats Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-panel p-6 rounded-xl border border-slate-700 shadow-sm flex items-center gap-4">
-                    <div class="p-4 bg-primary/20 text-primary rounded-lg">
-                        <i class="fa-solid fa-expand text-2xl"></i>
-                    </div>
+            <!-- TELA 1: LANDING PAGE -->
+            <div id="view-landing" class="h-full flex flex-col fade-in">
+                <div class="h-64 bg-landing relative flex items-end p-6">
                     <div>
-                        <p class="text-sm text-slate-400 font-medium">Aparelhos Conectados</p>
-                        <p class="text-2xl font-bold text-white" id="stat-total">0</p>
+                        <span class="bg-scanfit-green text-black text-xs font-bold px-2 py-1 rounded mb-2 inline-block">TECNOLOGIA QUE CONECTA</span>
+                        <h1 class="text-3xl font-bold text-white leading-tight">Seu movimento com precisão.</h1>
                     </div>
                 </div>
-                <div class="bg-panel p-6 rounded-xl border border-slate-700 shadow-sm flex items-center gap-4">
-                    <div class="p-4 bg-accent/20 text-accent rounded-lg">
-                        <i class="fa-solid fa-mobile-button text-2xl"></i>
-                    </div>
-                    <div>
-                        <p class="text-sm text-slate-400 font-medium">Leituras Registradas</p>
-                        <p class="text-2xl font-bold text-white">1.482</p>
-                    </div>
-                </div>
-                <div class="bg-panel p-6 rounded-xl border border-slate-700 shadow-sm flex items-center gap-4">
-                    <div class="p-4 bg-purple-500/20 text-purple-400 rounded-lg">
-                        <i class="fa-solid fa-shield-halved text-2xl"></i>
-                    </div>
-                    <div>
-                        <p class="text-sm text-slate-400 font-medium">Status do Sistema</p>
-                        <p class="text-2xl font-bold text-white">Online (Google Drive)</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tabela Centralizada de Exercícios -->
-            <div class="bg-panel rounded-xl border border-slate-700 overflow-hidden shadow-sm">
-                <div class="px-6 py-4 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-800/50">
-                    <h2 class="font-semibold text-white">Biblioteca Central de Exercícios Sincronizada</h2>
-                    <div class="relative w-full sm:w-auto">
-                        <i class="fa-solid fa-search absolute left-3 top-3 text-slate-400 text-sm"></i>
-                        <input type="text" id="filtro-busca" onkeyup="filtrarTabela()" placeholder="Buscar por exercício ou grupo..." class="bg-dark border border-slate-600 text-sm rounded-lg pl-9 pr-4 py-2 focus:ring-primary focus:border-primary w-full sm:w-80 text-white">
-                    </div>
-                </div>
-                <div class="overflow-x-auto max-h-[500px]">
-                    <table class="w-full text-sm text-left">
-                        <thead class="text-xs text-slate-400 uppercase bg-slate-800/30 sticky top-0 backdrop-blur">
-                            <tr>
-                                <th class="px-6 py-4 font-medium">ID</th>
-                                <th class="px-6 py-4 font-medium">Exercício</th>
-                                <th class="px-6 py-4 font-medium">Grupo Muscular</th>
-                                <th class="px-6 py-4 font-medium">Nível</th>
-                                <th class="px-6 py-4 text-right font-medium">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabela-exercicios" class="divide-y divide-slate-700/50">
-                            <!-- Preenchido dinamicamente via JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- ========================================== -->
-        <!-- VIEW 2: MOBILE SIMULATOR                   -->
-        <!-- ========================================== -->
-        <div id="view-aluno" class="hidden h-full flex flex-col lg:flex-row items-center justify-center gap-10">
-            
-            <div class="w-full lg:w-1/3 bg-panel p-6 rounded-2xl border border-slate-700 shadow-xl space-y-4">
-                <div>
-                    <h2 class="text-xl font-bold text-white mb-2"><i class="fa-solid fa-vr-cardboard text-primary mr-2"></i>Simulador NFC / QR Code</h2>
-                    <p class="text-sm text-slate-400">Selecione qualquer aparelho da sua planilha para simular instantaneamente a leitura feita pelo smartphone do aluno.</p>
-                </div>
-                <hr class="border-slate-700">
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Aparelho / Exercício Vinculado:</label>
-                    <select id="simulador-select" onchange="carregarVisaoAluno()" class="w-full bg-dark border border-slate-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-primary focus:outline-none cursor-pointer">
-                        <!-- Preenchido via JS -->
-                    </select>
-                </div>
-                <div class="bg-primary/10 border border-primary/30 p-4 rounded-xl flex items-start gap-3 mt-4">
-                    <i class="fa-solid fa-circle-info text-primary mt-0.5"></i>
-                    <p class="text-xs text-slate-300">Ao aproximar o celular do chip NFC no aparelho físico, esta exata tela abre no navegador do aluno sem travamentos.</p>
-                </div>
-            </div>
-
-            <!-- O Celular do Aluno -->
-            <div class="mobile-simulator bg-black flex flex-col">
-                <div class="h-6 flex justify-between items-center px-4 pt-1 text-[10px] text-white/80 absolute top-0 w-full z-20 bg-dark/50 backdrop-blur">
-                    <span>9:41</span>
-                    <div class="flex space-x-1 items-center">
-                        <i class="fa-solid fa-signal"></i>
-                        <i class="fa-solid fa-wifi"></i>
-                        <i class="fa-solid fa-battery-full"></i>
-                    </div>
-                </div>
-
-                <div class="flex-1 overflow-y-auto no-scrollbar relative w-full h-full pb-24">
+                <div class="p-6 space-y-6">
+                    <p class="text-scanfit-gray text-sm leading-relaxed">
+                        Bem-vindo ao aplicativo da sua academia. Acesse a biblioteca de exercícios, monte seu treino diário e alcance seus resultados com segurança e eficiência.
+                    </p>
                     
-                    <!-- Media Header -->
-                    <div class="relative w-full h-[42%] bg-slate-900 flex items-center justify-center">
-                        <img id="mobile-img" src="" alt="Demonstração GIF" class="w-full h-full object-cover opacity-95" onerror="this.src='https://placehold.co/600x400/1e293b/10b981?text=GIF+Indisponivel'">
-                        <div class="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-transparent to-transparent"></div>
-                        
-                        <div class="absolute top-8 right-4 bg-black/60 backdrop-blur px-3 py-1 rounded-full border border-white/10 flex items-center gap-2">
-                            <img src="https://ui-avatars.com/api/?name=Alpha+Fit&background=10b981&color=fff" class="w-4 h-4 rounded-full">
-                            <span class="text-[10px] font-semibold text-white">Alpha Fit</span>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-scanfit-card p-4 rounded-2xl border border-gray-800 text-center">
+                            <i class="fa-solid fa-qrcode text-2xl text-scanfit-green mb-2"></i>
+                            <h3 class="font-semibold text-sm">Escaneamento</h3>
+                            <p class="text-xs text-gray-500 mt-1">Leitura Rápida NFC/QR</p>
+                        </div>
+                        <div class="bg-scanfit-card p-4 rounded-2xl border border-gray-800 text-center">
+                            <i class="fa-solid fa-person-running text-2xl text-scanfit-green mb-2"></i>
+                            <h3 class="font-semibold text-sm">Execução</h3>
+                            <p class="text-xs text-gray-500 mt-1">Vídeos em Alta Qualidade</p>
                         </div>
                     </div>
 
-                    <!-- Conteúdo do Aluno -->
-                    <div class="px-5 -mt-6 relative z-10 space-y-5">
-                        <div class="flex gap-2 flex-wrap">
-                            <span id="mobile-grupo" class="px-3 py-1 bg-slate-800 border border-slate-700 text-xs font-semibold text-primary rounded-full uppercase tracking-wider"></span>
-                            <span id="mobile-nivel" class="px-3 py-1 bg-slate-800 border border-slate-700 text-xs font-medium text-slate-300 rounded-full"></span>
-                        </div>
-
-                        <h2 id="mobile-nome" class="text-2xl font-bold text-white leading-tight"></h2>
-
-                        <div class="space-y-3">
-                            <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                                <i class="fa-solid fa-list-check text-primary"></i> Instruções de Execução
-                            </h3>
-                            <ul id="mobile-instrucoes" class="space-y-2.5">
-                                <!-- Injetado via JS -->
-                            </ul>
-                        </div>
-
-                        <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex gap-3 items-start">
-                            <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5"></i>
-                            <div>
-                                <h4 class="text-xs font-semibold text-red-400 uppercase tracking-wider mb-1">Atenção & Postura</h4>
-                                <p id="mobile-aviso" class="text-xs text-red-200/90 leading-relaxed"></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Floating Bottom Action -->
-                <div class="absolute bottom-0 w-full p-4 glass-panel z-30">
-                    <button onclick="chamarProfessor()" class="w-full bg-slate-800 text-white border border-slate-600 hover:bg-slate-700 font-medium py-3 rounded-xl transition shadow-lg flex items-center justify-center gap-2 text-sm">
-                        <div class="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-                            <i class="fa-solid fa-hand-sparkles text-xs"></i>
-                        </div>
-                        Chamar Instrutor ao Aparelho
+                    <button onclick="navigate('library')" class="w-full bg-scanfit-green text-black font-bold py-4 rounded-xl shadow-[0_0_15px_rgba(143,227,2,0.3)] hover:bg-scanfit-greenHover transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-dumbbell"></i> Acessar Biblioteca
                     </button>
                 </div>
             </div>
+
+            <!-- TELA 2: BIBLIOTECA -->
+            <div id="view-library" class="hidden flex-col p-4 fade-in">
+                <h2 class="text-xl font-bold mb-4 text-white">Explorar Exercícios</h2>
+                <div class="relative mb-6">
+                    <i class="fa-solid fa-search absolute left-4 top-3.5 text-gray-500"></i>
+                    <input type="text" id="input-busca" onkeyup="filtrarBiblioteca()" placeholder="Buscar músculo ou aparelho..." class="w-full bg-scanfit-card border border-gray-800 rounded-xl py-3 pl-11 pr-4 text-sm text-white focus:border-scanfit-green focus:outline-none transition-colors">
+                </div>
+                
+                <div id="library-list" class="space-y-3">
+                    <!-- Preenchido via JS -->
+                </div>
+            </div>
+
+            <!-- TELA 3: MEU TREINO (Salvo Localmente) -->
+            <div id="view-workout" class="hidden flex-col p-4 fade-in">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-white">Meu Treino</h2>
+                    <button onclick="limparTreino()" class="text-xs text-red-400 font-medium px-2 py-1 bg-red-400/10 rounded">Limpar</button>
+                </div>
+                
+                <div id="workout-list" class="space-y-3">
+                    <!-- Preenchido via JS -->
+                </div>
+
+                <div id="workout-empty" class="text-center py-10 hidden">
+                    <i class="fa-solid fa-clipboard-list text-4xl text-gray-700 mb-3"></i>
+                    <p class="text-gray-400 text-sm">Seu treino está vazio.</p>
+                    <button onclick="navigate('library')" class="mt-4 text-scanfit-green text-sm font-semibold border-b border-scanfit-green">Adicionar exercícios</button>
+                </div>
+            </div>
+
+            <!-- TELA 4: EXERCÍCIO INDIVIDUAL (Leitura do QR Code) -->
+            <div id="view-exercise" class="hidden flex-col p-4 fade-in">
+                <button onclick="voltar()" class="text-scanfit-gray hover:text-white text-sm flex items-center gap-2 mb-4">
+                    <i class="fa-solid fa-chevron-left"></i> Voltar
+                </button>
+
+                <div class="mb-4">
+                    <h1 id="ex-title" class="text-2xl font-bold mb-1 text-white">Carregando...</h1>
+                    <span id="ex-muscle" class="text-scanfit-green font-semibold text-xs tracking-wide uppercase px-2 py-1 bg-scanfit-green/10 rounded border border-scanfit-green/20">...</span>
+                </div>
+
+                <div class="w-full bg-black rounded-2xl overflow-hidden shadow-lg border border-gray-800 mb-6 relative aspect-[4/3] flex items-center justify-center group" id="ex-media-container">
+                    <div class="loader"></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <button id="btn-add-treino" onclick="toggleTreinoAtual()" class="bg-scanfit-card border border-gray-800 text-white font-medium rounded-xl py-3 flex items-center justify-center gap-2 text-sm transition">
+                        <i class="fa-solid fa-plus text-scanfit-green"></i> Ao Treino
+                    </button>
+                    <button onclick="toggleMediaType()" class="bg-scanfit-card border border-scanfit-green text-scanfit-green font-medium rounded-xl py-3 flex items-center justify-center gap-2 text-sm transition">
+                        <i id="ex-toggle-icon" class="fa-solid fa-bolt"></i> <span id="ex-toggle-text">Ver GIF</span>
+                    </button>
+                </div>
+
+                <div class="mb-6 bg-scanfit-card p-5 rounded-2xl border border-gray-800">
+                    <h2 class="text-sm font-semibold mb-3 flex items-center text-white">
+                        <i class="fa-solid fa-dumbbell text-scanfit-green mr-2"></i> Execução correta
+                    </h2>
+                    <ul id="ex-steps" class="space-y-3 text-gray-400 text-sm leading-relaxed"></ul>
+                </div>
+
+                <div id="ex-tips-container" class="mb-4 bg-scanfit-card p-5 rounded-2xl border border-gray-800 relative overflow-hidden hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-yellow-500 opacity-5 rounded-bl-full"></div>
+                    <h2 class="text-sm font-semibold mb-3 flex items-center text-white">
+                        <i class="fa-solid fa-lightbulb text-yellow-500 mr-2"></i> Dicas importantes
+                    </h2>
+                    <ul id="ex-tips" class="space-y-2.5 text-gray-400 text-sm"></ul>
+                </div>
+            </div>
+
+            <!-- TELA 5: ADMIN (Protegida) -->
+            <div id="view-admin" class="hidden flex-col p-4 fade-in">
+                
+                <!-- Login -->
+                <div id="admin-login" class="flex flex-col items-center justify-center py-12">
+                    <i class="fa-solid fa-shield-halved text-4xl text-gray-600 mb-4"></i>
+                    <h2 class="text-lg font-bold text-white mb-2">Acesso Restrito</h2>
+                    <p class="text-xs text-gray-400 mb-6 text-center">Área reservada para administração do banco de dados.</p>
+                    
+                    <input type="password" id="admin-pass" placeholder="Senha de acesso" class="w-full max-w-[250px] bg-scanfit-card border border-gray-800 rounded-xl py-3 px-4 text-center text-white focus:border-scanfit-green focus:outline-none mb-4">
+                    <button onclick="verificarSenha()" class="w-full max-w-[250px] bg-scanfit-green text-black font-bold py-3 rounded-xl">Entrar</button>
+                </div>
+
+                <!-- Painel Config -->
+                <div id="admin-panel" class="hidden space-y-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Configurações</h2>
+                        <p class="text-xs text-gray-400 mt-1">Status: <span id="admin-status" class="text-scanfit-green font-medium">Online</span></p>
+                    </div>
+
+                    <div class="bg-scanfit-card p-5 rounded-2xl border border-gray-800">
+                        <label class="block text-sm font-semibold text-white mb-2"><i class="fa-solid fa-link text-scanfit-green mr-2"></i>URL CSV Google Sheets</label>
+                        <p class="text-[10px] text-gray-500 mb-3">Cole o link da sua planilha publicada na web em formato CSV.</p>
+                        <textarea id="admin-url-input" rows="3" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-xs text-gray-300 focus:border-scanfit-green focus:outline-none mb-3 break-all"></textarea>
+                        
+                        <button onclick="salvarPlanilhaAdmin()" class="w-full bg-scanfit-green text-black font-semibold py-2.5 rounded-lg text-sm flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-save"></i> Salvar & Sincronizar
+                        </button>
+                    </div>
+
+                    <div class="bg-scanfit-card p-5 rounded-2xl border border-gray-800">
+                        <h3 class="text-sm font-semibold text-white mb-3">Estatísticas</h3>
+                        <div class="flex justify-between items-center bg-black p-3 rounded-lg border border-gray-800">
+                            <span class="text-xs text-gray-400">Total de Exercícios:</span>
+                            <span class="text-lg font-bold text-scanfit-green" id="admin-total">0</span>
+                        </div>
+                    </div>
+                    
+                    <button onclick="sairAdmin()" class="w-full bg-transparent border border-gray-700 text-gray-400 font-medium py-2 rounded-lg text-sm hover:text-white">
+                        Sair do Painel
+                    </button>
+                </div>
+
+            </div>
+
+        </main>
+
+        <!-- ==========================================
+             BOTTOM NAVIGATION BAR
+             ========================================== -->
+        <nav class="glass-nav absolute bottom-0 w-full z-40 flex justify-around items-center px-2 py-3" id="bottom-nav">
+            <button onclick="navigate('landing')" class="nav-btn flex flex-col items-center gap-1 w-1/4 text-scanfit-green" data-target="landing">
+                <i class="fa-solid fa-house text-lg"></i>
+                <span class="text-[10px] font-medium">Início</span>
+            </button>
+            <button onclick="navigate('library')" class="nav-btn flex flex-col items-center gap-1 w-1/4 text-gray-500 hover:text-gray-300" data-target="library">
+                <i class="fa-solid fa-magnifying-glass text-lg"></i>
+                <span class="text-[10px] font-medium">Buscar</span>
+            </button>
+            <button onclick="navigate('workout')" class="nav-btn flex flex-col items-center gap-1 w-1/4 text-gray-500 hover:text-gray-300 relative" data-target="workout">
+                <i class="fa-solid fa-clipboard-list text-lg"></i>
+                <span class="text-[10px] font-medium">Treino</span>
+                <span id="badge-treino" class="absolute top-0 right-2 bg-scanfit-green text-black text-[8px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+            </button>
+            <button onclick="navigate('admin')" class="nav-btn flex flex-col items-center gap-1 w-1/4 text-gray-700 hover:text-gray-500" data-target="admin">
+                <i class="fa-solid fa-gear text-lg"></i>
+                <span class="text-[10px] font-medium">Ajustes</span>
+            </button>
+        </nav>
+
+        <!-- Toast Notifications -->
+        <div id="toast" class="fixed top-20 left-1/2 transform -translate-x-1/2 bg-scanfit-card border border-gray-700 text-white px-4 py-2 rounded-full shadow-2xl z-50 -translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-2 max-w-[90%] pointer-events-none">
+            <i id="toast-icon" class="fa-solid fa-circle-check text-scanfit-green text-sm"></i>
+            <span id="toast-msg" class="text-xs font-medium whitespace-nowrap overflow-hidden text-ellipsis">Ação Sucesso!</span>
         </div>
 
-    </main>
-
-    <!-- Modal de Configuração de URL da Planilha -->
-    <div id="modal-config" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-panel border border-slate-700 max-w-md w-full p-6 rounded-2xl shadow-2xl space-y-4">
-            <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-link text-primary"></i> URL de Sincronização Google Sheets
-            </h3>
-            <p class="text-xs text-slate-400">Cole abaixo o link CSV público da sua planilha do Google Sheets para puxar todos os 603 exercícios automaticamente:</p>
-            <div>
-                <input type="text" id="input-planilha-url" placeholder="https://docs.google.com/spreadsheets/d/.../export?format=csv" class="w-full bg-dark border border-slate-600 rounded-lg p-3 text-xs text-white focus:ring-primary focus:border-primary">
-            </div>
-            <div class="flex justify-end gap-3 pt-2">
-                <button onclick="fecharConfiguracaoPlanilha()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-medium transition">Cancelar</button>
-                <button onclick="salvarEAtualizarPlanilha()" class="px-4 py-2 bg-primary hover:bg-primaryHover text-dark font-semibold rounded-lg text-xs transition">Salvar & Sincronizar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Notification Toast -->
-    <div id="toast" class="fixed bottom-6 right-6 bg-slate-800 border border-slate-600 text-white px-5 py-3 rounded-xl shadow-2xl z-50 transform translate-y-32 opacity-0 transition-all duration-300 flex items-center gap-3">
-        <i id="toast-icon" class="fa-solid fa-check text-primary"></i>
-        <span id="toast-msg" class="text-sm">Ação realizada com sucesso!</span>
     </div>
 
     <script>
-        // Banco de Dados padrão inicial (Fallback caso a planilha externa ainda não esteja configurada)
-        let bancoDeDados = [
-            {
-                ID_Exercicio: "ex_1",
-                Nome: "SUPINO RETO COM BARRA",
-                Grupo_Muscular: "Peitoral",
-                Nivel: "Intermediário",
-                URL_Capa: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&q=80&w=800",
-                Instrucoes: "Deite-se no banco com os olhos alinhados à barra.|Segure a barra com pegada um pouco mais aberta que os ombros.|Desça controladamente até próximo ao peito.|Empurre para cima expirando o ar.",
-                Avisos: "Mantenha os pés firmes no chão e não descole a lombar do banco."
-            },
-            {
-                ID_Exercicio: "ex_2",
-                Nome: "PUXADA FRONTAL NA POLIA",
-                Grupo_Muscular: "Costas / Dorsal",
-                Nivel: "Iniciante",
-                URL_Capa: "https://images.unsplash.com/photo-1603287681836-b174ce5074c2?auto=format&fit=crop&q=80&w=800",
-                Instrucoes: "Ajuste o rolete para prender bem as coxas.|Segure a barra com pegada aberta.|Incline o tronco levemente para trás e puxe a barra em direção ao peito superior.|Retorne controlando o peso, alongando as costas.",
-                Avisos: "Evite usar o impulso do corpo jogando as costas para trás de forma exagerada."
-            },
-            {
-                ID_Exercicio: "ex_3",
-                Nome: "LEG PRESS 45º",
-                Grupo_Muscular: "Membros Inferiores",
-                Nivel: "Iniciante",
-                URL_Capa: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=800",
-                Instrucoes: "Apoie as costas e cabeça firmemente no encosto.|Posicione os pés na plataforma na largura dos ombros.|Destrave o aparelho e desça controlando até 90 graus.|Empurre a plataforma sem esticar os joelhos completamente no final.",
-                Avisos: "NUNCA faça hiperextensão total dos joelhos no topo do movimento."
+        /* ==========================================
+           SEGURANÇA (Anti-cópia basica via JS)
+           ========================================== */
+        document.addEventListener('contextmenu', event => event.preventDefault()); // Desativa botão direito
+        document.onkeydown = function(e) {
+            // Desativa F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+            if(e.keyCode == 123 || 
+              (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || 
+              (e.ctrlKey && e.keyCode == 85)) {
+                return false;
             }
-        ];
+        };
 
-        // URL padrão do CSV da Planilha do Google Sheets (se salva no localStorage)
-        let planilhaCSVUrl = localStorage.getItem('fitqr_sheets_url') || "";
+        /* ==========================================
+           ESTADO DA APLICAÇÃO
+           ========================================== */
+        // Link CSV já preparado usando a URL que você enviou
+        const defaultCSV = "https://docs.google.com/spreadsheets/d/1c9-_V_6F6ANWPHu5Xvheg-psEPEPVB_4FVy7riPXqtI/export?format=csv&gid=390283479";
+        
+        let planilhaCSVUrl = localStorage.getItem('scanfit_sheets_url') || defaultCSV;
+        let dbExercicios = [];
+        let treinoSalvo = JSON.parse(localStorage.getItem('scanfit_treino')) || [];
+        let exercicioAtual = null;
+        let isShowingVideo = true;
+        let currentView = 'landing';
 
-        function switchView(view) {
-            const viewAdmin = document.getElementById('view-admin');
-            const viewAluno = document.getElementById('view-aluno');
-            const btnAdmin = document.getElementById('btn-admin');
-            const btnAluno = document.getElementById('btn-aluno');
-
-            if (view === 'admin') {
-                viewAdmin.classList.remove('hidden');
-                viewAluno.classList.add('hidden');
-                btnAdmin.className = "px-4 py-2 rounded-md text-sm font-medium bg-primary text-dark transition-colors flex items-center gap-2";
-                btnAluno.className = "px-4 py-2 rounded-md text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition-colors flex items-center gap-2";
-            } else {
-                viewAdmin.classList.add('hidden');
-                viewAluno.classList.remove('hidden');
-                viewAluno.classList.add('flex');
-                btnAluno.className = "px-4 py-2 rounded-md text-sm font-medium bg-primary text-dark transition-colors flex items-center gap-2";
-                btnAdmin.className = "px-4 py-2 rounded-md text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition-colors flex items-center gap-2";
-                carregarVisaoAluno();
-            }
-        }
-
-        function mostrarToast(mensagem, icone = "fa-check") {
-            const toast = document.getElementById('toast');
-            const msg = document.getElementById('toast-msg');
-            const iconEl = document.getElementById('toast-icon');
-            
-            msg.innerText = mensagem;
-            iconEl.className = `fa-solid ${icone} text-primary`;
-            
-            toast.classList.remove('translate-y-32', 'opacity-0');
-            setTimeout(() => {
-                toast.classList.add('translate-y-32', 'opacity-0');
-            }, 3500);
-        }
-
-        async function carregarDadosPlanilha() {
-            if (!planilhaCSVUrl) {
-                renderizarTabela(bancoDeDados);
-                return;
-            }
-
-            mostrarToast("Sincronizando com Google Sheets...", "fa-rotate fa-spin");
-
-            try {
-                const response = await fetch(planilhaCSVUrl);
-                const csvText = await response.text();
+        /* ==========================================
+           INICIALIZAÇÃO & ROTEAMENTO
+           ========================================== */
+        document.addEventListener('DOMContentLoaded', () => {
+            atualizarBadgeTreino();
+            carregarDadosPlanilha().then(() => {
+                // Roteamento baseado na URL (QR Code)
+                const urlParams = new URLSearchParams(window.location.search);
+                const idParam = urlParams.get('id');
                 
-                const linhas = csvText.split('\n');
-                const novosDados = [];
-                
-                // Ignora o cabeçalho (linha 0) e processa o CSV
-                for (let i = 1; i < linhas.length; i++) {
-                    let linha = linhas[i].trim();
-                    if (!linha) continue;
-                    
-                    // Tratamento simples de colunas separadas por vírgula ou ponto e vírgula
-                    let colunas = parseCSVLine(linha);
-                    
-                    if (colunas.length >= 5) {
-                        novosDados.push({
-                            ID_Exercicio: colunas[0] || `ex_${i}`,
-                            Nome: colunas[1] || `Exercício ${i}`,
-                            Grupo_Muscular: colunas[2] || "Geral",
-                            Nivel: colunas[3] || "Iniciante",
-                            URL_Capa: colunas[4] || "https://placehold.co/600x400/1e293b/10b981?text=GIF",
-                            Instrucoes: colunas[5] || "Posicione-se corretamente.|Execute com controle.|Respire corretamente.",
-                            Avisos: colunas[6] || "Mantenha a postura correta e evite movimentos bruscos."
-                        });
-                    }
-                }
-
-                if (novosDados.length > 0) {
-                    bancoDeDados = novosDados;
-                    mostrarToast(`Sucesso! ${bancoDeDados.length} aparelhos sincronizados.`);
-                }
-            } catch (err) {
-                console.error("Erro ao sincronizar planilha:", err);
-                mostrarToast("Erro ao sincronizar. Usando base local.", "fa-triangle-exclamation");
-            }
-
-            renderizarTabela(bancoDeDados);
-            atualizarContadorSync();
-        }
-
-        function parseCSVLine(text) {
-            let result = [];
-            let cell = '';
-            let inQuotes = false;
-            
-            for (let i = 0; i < text.length; i++) {
-                let char = text[i];
-                if (char === '"') {
-                    inQuotes = !inQuotes;
-                } else if ((char === ',' || char === ';') && !inQuotes) {
-                    result.push(cell.trim().replace(/^"|"$/g, ''));
-                    cell = '';
+                if (idParam) {
+                    abrirExercicio(idParam);
                 } else {
-                    cell += char;
+                    navigate('landing');
                 }
-            }
-            result.push(cell.trim().replace(/^"|"$/g, ''));
-            return result;
-        }
+            });
+        });
 
-        function atualizarContadorSync() {
-            const badge = document.getElementById('sync-status');
-            const count = document.getElementById('sync-count');
-            count.innerText = bancoDeDados.length;
-            badge.classList.remove('hidden');
-        }
-
-        function abrirConfiguracaoPlanilha() {
-            document.getElementById('input-planilha-url').value = planilhaCSVUrl;
-            document.getElementById('modal-config').classList.remove('hidden');
-        }
-
-        function fecharConfiguracaoPlanilha() {
-            document.getElementById('modal-config').classList.add('hidden');
-        }
-
-        function salvarEAtualizarPlanilha() {
-            const urlInput = document.getElementById('input-planilha-url').value.trim();
-            planilhaCSVUrl = urlInput;
-            localStorage.setItem('fitqr_sheets_url', planilhaCSVUrl);
-            fecharConfiguracaoPlanilha();
-            carregarDadosPlanilha();
-        }
-
-        function renderizarTabela(dadosParaRenderizar = bancoDeDados) {
-            const tbody = document.getElementById('tabela-exercicios');
-            const selectSimulador = document.getElementById('simulador-select');
+        function navigate(viewId) {
+            currentView = viewId;
             
-            tbody.innerHTML = '';
-            selectSimulador.innerHTML = '';
+            // Oculta todas as views
+            ['view-landing', 'view-library', 'view-workout', 'view-exercise', 'view-admin'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+                document.getElementById(id).classList.remove('flex');
+            });
+            
+            // Mostra a selecionada
+            const target = document.getElementById(`view-${viewId}`);
+            target.classList.remove('hidden');
+            target.classList.add('flex');
 
-            document.getElementById('stat-total').innerText = bancoDeDados.length;
+            // Atualiza botões do menu inferior
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if (btn.dataset.target === viewId) {
+                    btn.classList.remove('text-gray-500', 'text-gray-700');
+                    btn.classList.add('text-scanfit-green');
+                } else {
+                    btn.classList.remove('text-scanfit-green');
+                    btn.classList.add(btn.dataset.target === 'admin' ? 'text-gray-700' : 'text-gray-500');
+                }
+            });
 
-            dadosParaRenderizar.forEach(ex => {
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-800/50 transition">
-                        <td class="px-6 py-4 font-mono text-xs text-slate-400">${ex.ID_Exercicio}</td>
-                        <td class="px-6 py-4 font-medium text-white flex items-center gap-3">
-                            <img src="${ex.URL_Capa}" class="w-9 h-9 rounded object-cover border border-slate-600 bg-slate-900" onerror="this.src='https://placehold.co/100x100/1e293b/10b981?text=GIF'">
-                            ${ex.Nome}
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="bg-slate-800 text-primary border border-primary/20 px-2.5 py-1 rounded-full text-xs font-semibold uppercase">${ex.Grupo_Muscular}</span>
-                        </td>
-                        <td class="px-6 py-4 text-slate-300 text-sm">${ex.Nivel}</td>
-                        <td class="px-6 py-4 text-right">
-                            <button onclick="testarExercicio('${ex.ID_Exercicio}')" class="text-slate-400 hover:text-primary transition bg-slate-800 px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700 shadow-sm">Testar Mobile</button>
-                        </td>
-                    </tr>
-                `;
+            // Lógicas específicas de cada aba
+            if(viewId === 'workout') renderizarTreino();
+            if(viewId === 'library') renderizarBiblioteca(dbExercicios);
+        }
 
-                selectSimulador.innerHTML += `<option value="${ex.ID_Exercicio}">${ex.Nome} (${ex.Grupo_Muscular})</option>`;
+        // Simula botão voltar do próprio navegador se estiver na tela do ex
+        function voltar() {
+            // Limpa o parametro da url para não travar num reload
+            window.history.pushState({}, document.title, window.location.pathname);
+            navigate('library');
+        }
+
+        /* ==========================================
+           SINCRONIZAÇÃO DE DADOS (PapaParse)
+           ========================================== */
+        async function carregarDadosPlanilha() {
+            const statusIndicator = document.getElementById('header-status');
+            statusIndicator.className = "w-2 h-2 rounded-full bg-yellow-500 animate-pulse";
+            
+            return new Promise((resolve) => {
+                Papa.parse(planilhaCSVUrl, {
+                    download: true,
+                    header: true,
+                    complete: function(results) {
+                        if (results.data && results.data.length > 0 && results.data[0].id) {
+                            dbExercicios = formatData(results.data);
+                            statusIndicator.className = "w-2 h-2 rounded-full bg-scanfit-green";
+                            document.getElementById('admin-total').innerText = dbExercicios.length;
+                            resolve();
+                        } else {
+                            handleError("Formato CSV inválido", statusIndicator, resolve);
+                        }
+                    },
+                    error: function(err) {
+                        console.error(err);
+                        handleError("Falha de conexão", statusIndicator, resolve);
+                    }
+                });
             });
         }
 
-        function filtrarTabela() {
-            const termo = document.getElementById('filtro-busca').value.toLowerCase();
-            const filtrados = bancoDeDados.filter(ex => 
-                ex.Nome.toLowerCase().includes(termo) || 
-                ex.Grupo_Muscular.toLowerCase().includes(termo) ||
-                ex.ID_Exercicio.toLowerCase().includes(termo)
+        function handleError(msg, indicator, resolve) {
+            indicator.className = "w-2 h-2 rounded-full bg-red-500";
+            mostrarToast(msg, "fa-circle-xmark text-red-500");
+            // Fallback mock (1 item) apenas para não quebrar UI
+            dbExercicios = [{ id: "supino-reto", nome: "Supino Reto (Exemplo)", grupo: "Peito", video: "", gif: "", execucao: ["Erro de conexão na planilha"], dicas: [] }];
+            resolve();
+        }
+
+        function formatData(data) {
+            return data.filter(item => item.id && item.nome).map(item => {
+                const splitChar = (item.execucao && item.execucao.includes('|')) ? '|' : ';';
+                return {
+                    id: item.id.trim(),
+                    nome: item.nome.trim(),
+                    grupo: item.grupo ? item.grupo.trim() : 'Geral',
+                    video: item.video ? item.video.trim() : '',
+                    gif: item.gif ? item.gif.trim() : '',
+                    execucao: item.execucao ? item.execucao.split(splitChar).map(s => s.trim()).filter(Boolean) : [],
+                    dicas: item.dicas ? item.dicas.split(splitChar).map(s => s.trim()).filter(Boolean) : []
+                };
+            });
+        }
+
+        /* ==========================================
+           BIBLIOTECA & BUSCA
+           ========================================== */
+        function renderizarBiblioteca(dados) {
+            const container = document.getElementById('library-list');
+            container.innerHTML = '';
+
+            if(dados.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Nenhum exercício encontrado.</p>';
+                return;
+            }
+
+            dados.forEach(ex => {
+                container.innerHTML += `
+                    <div onclick="abrirExercicio('${ex.id}')" class="bg-scanfit-card p-4 rounded-2xl border border-gray-800 flex items-center justify-between cursor-pointer hover:border-gray-600 transition">
+                        <div>
+                            <h4 class="font-bold text-white text-sm">${ex.nome}</h4>
+                            <span class="text-[10px] text-scanfit-gray font-medium uppercase tracking-wider">${ex.grupo}</span>
+                        </div>
+                        <div class="w-8 h-8 rounded-full bg-scanfit-green/10 flex items-center justify-center text-scanfit-green">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function filtrarBiblioteca() {
+            const termo = document.getElementById('input-busca').value.toLowerCase();
+            const filtrados = dbExercicios.filter(ex => 
+                ex.nome.toLowerCase().includes(termo) || ex.grupo.toLowerCase().includes(termo)
             );
-            renderizarTabela(filtrados);
+            renderizarBiblioteca(filtrados);
         }
 
-        function testarExercicio(id) {
-            document.getElementById('simulador-select').value = id;
-            switchView('aluno');
+        /* ==========================================
+           VISUALIZAÇÃO DE EXERCÍCIO (O Core do App)
+           ========================================== */
+        function abrirExercicio(id) {
+            const ex = dbExercicios.find(item => item.id === id);
+            if (!ex) {
+                mostrarToast("Exercício não encontrado.");
+                navigate('library');
+                return;
+            }
+
+            exercicioAtual = ex;
+            isShowingVideo = true; // Inicia com video
+
+            // Preenche Header
+            document.getElementById('ex-title').textContent = ex.nome;
+            document.getElementById('ex-muscle').textContent = ex.grupo;
+
+            // Preenche Passos
+            const stepsContainer = document.getElementById('ex-steps');
+            stepsContainer.innerHTML = '';
+            if(ex.execucao.length > 0) {
+                ex.execucao.forEach(step => {
+                    stepsContainer.innerHTML += `
+                        <li class="flex items-start">
+                            <i class="fa-solid fa-circle-check text-scanfit-green mt-1 mr-3 text-xs opacity-80"></i>
+                            <span>${step}</span>
+                        </li>
+                    `;
+                });
+            } else {
+                stepsContainer.innerHTML = '<li class="text-xs text-gray-500">Siga as instruções do vídeo.</li>';
+            }
+
+            // Preenche Dicas
+            const tipsContainer = document.getElementById('ex-tips');
+            const tipsWrapper = document.getElementById('ex-tips-container');
+            tipsContainer.innerHTML = '';
+            
+            if(ex.dicas.length > 0) {
+                tipsWrapper.classList.remove('hidden');
+                ex.dicas.forEach(tip => {
+                    tipsContainer.innerHTML += `
+                        <li class="flex items-start">
+                            <div class="min-w-[4px] h-[4px] rounded-full bg-gray-400 mt-2 mr-3"></div>
+                            <span>${tip}</span>
+                        </li>
+                    `;
+                });
+            } else {
+                tipsWrapper.classList.add('hidden');
+            }
+
+            atualizarEstadoBotaoTreino();
+            atualizarMedia();
+            navigate('exercise');
+            document.getElementById('main-content').scrollTo(0, 0);
         }
 
-        function carregarVisaoAluno() {
-            const idSelecionado = document.getElementById('simulador-select').value;
-            const ex = bancoDeDados.find(item => item.ID_Exercicio === idSelecionado) || bancoDeDados[0];
+        function atualizarMedia() {
+            const container = document.getElementById('ex-media-container');
+            const toggleText = document.getElementById('ex-toggle-text');
+            const toggleIcon = document.getElementById('ex-toggle-icon');
+            
+            container.innerHTML = ''; 
 
-            if (!ex) return;
-
-            document.getElementById('mobile-img').src = ex.URL_Capa;
-            document.getElementById('mobile-grupo').innerText = ex.Grupo_Muscular;
-            document.getElementById('mobile-nivel').innerText = ex.Nivel;
-            document.getElementById('mobile-nome').innerText = ex.Nome;
-            document.getElementById('mobile-aviso').innerText = ex.Avisos;
-
-            const passos = ex.Instrucoes ? ex.Instrucoes.split('|') : ["Siga a execução correta."];
-            const ulInstrucoes = document.getElementById('mobile-instrucoes');
-            ulInstrucoes.innerHTML = passos.map((passo, index) => `
-                <li class="flex items-start gap-3 bg-panel/70 border border-slate-700/50 p-3 rounded-xl">
-                    <span class="flex-shrink-0 w-5 h-5 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center text-[10px] font-bold text-primary mt-0.5">
-                        ${index + 1}
-                    </span>
-                    <p class="text-xs text-slate-200 leading-relaxed">${passo.trim()}</p>
-                </li>
-            `).join('');
+            if (isShowingVideo) {
+                if (exercicioAtual.video) {
+                    container.innerHTML = `<iframe src="${exercicioAtual.video}" class="absolute inset-0 w-full h-full object-cover" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                } else {
+                    container.innerHTML = `<div class="text-scanfit-gray text-center"><i class="fa-solid fa-video-slash text-2xl mb-2"></i><br><span class="text-xs">Sem vídeo</span></div>`;
+                }
+                toggleText.textContent = 'Ver GIF';
+                toggleIcon.className = 'fa-solid fa-bolt';
+            } else {
+                if (exercicioAtual.gif) {
+                    container.innerHTML = `<img src="${exercicioAtual.gif}" alt="GIF" class="absolute inset-0 w-full h-full object-cover">`;
+                } else {
+                    container.innerHTML = `<div class="text-scanfit-gray text-center"><i class="fa-regular fa-image text-2xl mb-2"></i><br><span class="text-xs">Sem GIF</span></div>`;
+                }
+                toggleText.textContent = 'Ver Vídeo';
+                toggleIcon.className = 'fa-solid fa-play';
+            }
         }
 
-        function chamarProfessor() {
-            mostrarToast("Instrutor notificado e a caminho do aparelho!", "fa-bell");
+        function toggleMediaType() {
+            isShowingVideo = !isShowingVideo;
+            atualizarMedia();
         }
 
-        window.onload = () => {
-            carregarDadosPlanilha();
-        };
+        /* ==========================================
+           LÓGICA "MEU TREINO" (Local Storage)
+           ========================================== */
+        function toggleTreinoAtual() {
+            if(!exercicioAtual) return;
+            const id = exercicioAtual.id;
+            
+            if (treinoSalvo.includes(id)) {
+                treinoSalvo = treinoSalvo.filter(i => i !== id);
+                mostrarToast("Removido do treino", "fa-minus");
+            } else {
+                treinoSalvo.push(id);
+                mostrarToast("Adicionado ao treino!", "fa-plus");
+            }
+            
+            localStorage.setItem('scanfit_treino', JSON.stringify(treinoSalvo));
+            atualizarEstadoBotaoTreino();
+            atualizarBadgeTreino();
+        }
+
+        function removerDoTreino(id, event) {
+            event.stopPropagation(); // Evita abrir o exercício ao clicar no lixo
+            treinoSalvo = treinoSalvo.filter(i => i !== id);
+            localStorage.setItem('scanfit_treino', JSON.stringify(treinoSalvo));
+            renderizarTreino();
+            atualizarBadgeTreino();
+        }
+
+        function limparTreino() {
+            if(confirm("Deseja realmente limpar seu treino?")) {
+                treinoSalvo = [];
+                localStorage.setItem('scanfit_treino', JSON.stringify(treinoSalvo));
+                renderizarTreino();
+                atualizarBadgeTreino();
+            }
+        }
+
+        function atualizarEstadoBotaoTreino() {
+            const btn = document.getElementById('btn-add-treino');
+            if(!btn || !exercicioAtual) return;
+
+            if(treinoSalvo.includes(exercicioAtual.id)) {
+                btn.className = "bg-scanfit-green text-black font-medium rounded-xl py-3 flex items-center justify-center gap-2 text-sm transition";
+                btn.innerHTML = `<i class="fa-solid fa-check"></i> No Treino`;
+            } else {
+                btn.className = "bg-scanfit-card border border-gray-800 text-white font-medium rounded-xl py-3 flex items-center justify-center gap-2 text-sm transition";
+                btn.innerHTML = `<i class="fa-solid fa-plus text-scanfit-green"></i> Ao Treino`;
+            }
+        }
+
+        function atualizarBadgeTreino() {
+            const badge = document.getElementById('badge-treino');
+            if(treinoSalvo.length > 0) {
+                badge.innerText = treinoSalvo.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function renderizarTreino() {
+            const container = document.getElementById('workout-list');
+            const emptyState = document.getElementById('workout-empty');
+            
+            container.innerHTML = '';
+
+            if(treinoSalvo.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                
+                treinoSalvo.forEach((id, index) => {
+                    const ex = dbExercicios.find(item => item.id === id);
+                    if(ex) {
+                        container.innerHTML += `
+                            <div onclick="abrirExercicio('${ex.id}')" class="bg-scanfit-card p-4 rounded-2xl border border-gray-800 flex items-center justify-between cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-xs font-bold text-gray-500 w-4">${index + 1}</span>
+                                    <div>
+                                        <h4 class="font-bold text-white text-sm">${ex.nome}</h4>
+                                        <span class="text-[10px] text-scanfit-green font-medium uppercase tracking-wider">${ex.grupo}</span>
+                                    </div>
+                                </div>
+                                <button onclick="removerDoTreino('${ex.id}', event)" class="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-400 hover:bg-red-500/20">
+                                    <i class="fa-solid fa-trash text-[10px]"></i>
+                                </button>
+                            </div>
+                        `;
+                    }
+                });
+            }
+        }
+
+        /* ==========================================
+           ÁREA ADMINISTRATIVA (Segura)
+           ========================================== */
+        function verificarSenha() {
+            const pass = document.getElementById('admin-pass').value;
+            if(pass === 'ScanFit@123') {
+                document.getElementById('admin-login').classList.add('hidden');
+                document.getElementById('admin-panel').classList.remove('hidden');
+                document.getElementById('admin-url-input').value = planilhaCSVUrl;
+                document.getElementById('admin-pass').value = ''; // Limpa campo
+            } else {
+                mostrarToast("Senha incorreta!", "fa-lock text-red-500");
+            }
+        }
+
+        function salvarPlanilhaAdmin() {
+            const novaUrl = document.getElementById('admin-url-input').value.trim();
+            if(novaUrl) {
+                planilhaCSVUrl = novaUrl;
+                localStorage.setItem('scanfit_sheets_url', planilhaCSVUrl);
+                carregarDadosPlanilha().then(() => {
+                    mostrarToast("Planilha salva e sincronizada!");
+                });
+            }
+        }
+
+        function sairAdmin() {
+            document.getElementById('admin-panel').classList.add('hidden');
+            document.getElementById('admin-login').classList.remove('hidden');
+            navigate('landing');
+        }
+
+        /* ==========================================
+           UTILITÁRIOS & UI
+           ========================================== */
+        function mostrarToast(mensagem, iconePersonalizado = null) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = mensagem;
+            
+            const iconEl = document.getElementById('toast-icon');
+            if(iconePersonalizado) {
+                iconEl.className = `fa-solid ${iconePersonalizado}`;
+            } else {
+                iconEl.className = `fa-solid fa-circle-check text-scanfit-green text-sm`;
+            }
+            
+            toast.classList.remove('-translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-4', 'opacity-100');
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-4', 'opacity-100');
+                toast.classList.add('-translate-y-20', 'opacity-0');
+            }, 3000);
+        }
     </script>
 </body>
 </html>
