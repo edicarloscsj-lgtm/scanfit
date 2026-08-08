@@ -464,13 +464,32 @@
                 
                 allExercises = data.map((item, index) => {
                     let rawUrl = item.URL || item.url || "";
-                    let cleanUrl = rawUrl;
+                    let cleanUrl = rawUrl.trim();
                     
-                    // Transforma links do Google Drive para formato de exibição estável (lh3 ou uc export)
-                    if (rawUrl.includes("drive.google.com")) {
-                        let matchId = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || rawUrl.match(/id=([a-zA-Z0-9_-]+)/);
-                        if (matchId && matchId[1]) {
-                            cleanUrl = `https://lh3.googleusercontent.com/d/${matchId[1]}`;
+                    // =========================================================================
+                    // EXTRATOR AUTOMÁTICO DE ID DO GOOGLE DRIVE
+                    // Converte qualquer formato de link do Google Drive para o formato lh3 estável
+                    // =========================================================================
+                    if (cleanUrl.includes("drive.google.com")) {
+                        let fileId = "";
+                        
+                        // Formato 1: /file/d/SEU_ID/view ou similar
+                        let matchSlash = cleanUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                        if (matchSlash && matchSlash[1]) {
+                            fileId = matchSlash[1];
+                        }
+                        
+                        // Formato 2: ?export=view&id=SEU_ID ou id=SEU_ID
+                        if (!fileId) {
+                            let matchParam = cleanUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+                            if (matchParam && matchParam[1]) {
+                                fileId = matchParam[1];
+                            }
+                        }
+                        
+                        // Se encontrou o ID, aplica o formato definitivo lh3.googleusercontent.com/d/ID
+                        if (fileId) {
+                            cleanUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
                         }
                     }
 
@@ -486,14 +505,14 @@
                 });
 
                 loading.style.display = 'none';
-                filterAndRenderExercises();
-                showToast(`${allExercises.length} exercícios carregados com sucesso!`);
+                filterAndRefineExercises();
+                showToast(`${allExercises.length} exercícios carregados e URLs convertidas com sucesso!`);
             } catch (error) {
                 console.error("Erro ao buscar dados do Apps Script:", error);
                 loading.innerHTML = `
                     <div class="text-center space-y-3">
                         <i class="fa-solid fa-triangle-exclamation text-3xl text-amber-500"></i>
-                        <p class="text-slate-300 text-sm">Não foi possível carregar os 603 exercícios online.</p>
+                        <p class="text-slate-300 text-sm">Não foi possível carregar os exercícios online.</p>
                         <button onclick="fetchExercises()" class="px-4 py-2 bg-brand-500 text-white rounded-xl text-xs font-medium">Tentar Novamente</button>
                     </div>
                 `;
