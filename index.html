@@ -441,9 +441,13 @@
                 navigate('library', false);
             }
             
-            // Limpa URL para não travar num reload
-            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-            window.history.pushState({path:newUrl}, '', newUrl);
+            // Limpa URL de forma segura (Prevenção de SecurityError em blobs/locais)
+            try {
+                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                window.history.pushState({path:newUrl}, '', newUrl);
+            } catch (e) {
+                console.warn("Navegação de URL ignorada devido a restrições de segurança do ambiente (esperado em visualizações locais ou blobs).", e);
+            }
         }
 
         /* ==========================================
