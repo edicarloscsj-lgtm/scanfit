@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <title>ScanFit - Seu Movimento com Precisão</title>
     
     <!-- Fontes e Ícones -->
@@ -353,6 +355,7 @@
                 <div class="bg-scanfit-card p-5 rounded-2xl border border-gray-800 shadow-sm">
                     <h3 class="text-sm font-bold mb-2 flex items-center gap-2"><i class="fa-solid fa-database text-scanfit-green"></i> Conexão Google Sheets</h3>
                     <p class="text-[10px] text-gray-400 mb-4">Insira o link completo da sua planilha. O sistema usará a API do Google para baixar os exercícios.</p>
+                    <p class="text-[9px] text-yellow-500/80 mb-3">A proteção do painel é local. Para segurança real, use autenticação em um backend.</p>
                     <input type="text" id="admin-url" placeholder="Cole a URL do Google Sheets aqui..." class="w-full bg-black border border-gray-700 rounded-xl px-3 py-3 text-xs text-white mb-3 outline-none">
                     <button onclick="salvarURLPlanilha()" class="w-full bg-scanfit-green text-black text-sm font-bold py-2.5 rounded-lg active:scale-95">Salvar e Sincronizar</button>
                 </div>
@@ -402,13 +405,116 @@
            VARIÁVEIS GLOBAIS E ESTADO
            ========================================== */
         let dbExercicios = [];
-        let treinoSalvo = JSON.parse(localStorage.getItem('scanfit_treino')) || [];
-        let perfilDados = JSON.parse(localStorage.getItem('scanfit_perfil')) || {};
+        let treinoSalvo = safeJSONParse(localStorage.getItem('scanfit_treino'), []);
+        let perfilDados = safeJSONParse(localStorage.getItem('scanfit_perfil'), {});
         let exercicioAtual = null;
         let currentMediaType = 'video';
         let currentCategory = 'Todos';
         let currentView = 'landing';
         let debounceTimer;
+        let adminAttempts = 0;
+        let adminLockedUntil = 0;
+
+        // Proteções para um aplicativo 100% client-side.
+        // IMPORTANTE: sem backend, a autenticação do painel não é uma barreira de segurança real.
+        const ADMIN_PASSWORD_HASH = '529eb27ca3919494a1cf60ecd3672e37e71f2e33674e179bbcae1bf8573ddf07';
+
+        function safeJSONParse(value, fallback) {
+            if (!value) return fallback;
+            try {
+                const parsed = JSON.parse(value);
+                return parsed ?? fallback;
+            } catch (error) {
+                console.warn('ScanFit: armazenamento local inválido, usando padrão.', error);
+                return fallback;
+            }
+        }
+
+        function saveLocalJSON(key, value) {
+            try {
+                localStorage.setItem(key, JSON.stringify(value));
+                return true;
+            } catch (error) {
+                console.error('ScanFit: não foi possível salvar no armazenamento local.', error);
+                mostrarToast('Não foi possível salvar os dados', 'fa-triangle-exclamation');
+                return false;
+            }
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function normalizeId(value) {
+            return String(value ?? '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/[^a-z0-9_-]/g, '-')
+                .replace(/-+/g, '-')
+                .replace(/^-|-$/g, '')
+                .slice(0, 120);
+        }
+
+        function isAllowedYouTubeUrl(value) {
+            try {
+                const url = new URL(value);
+                const host = url.hostname.toLowerCase();
+                return url.protocol === 'https:' &&
+                    ['www.youtube.com', 'youtube.com', 'm.youtube.com', 'www.youtube-nocookie.com', 'youtube-nocookie.com'].includes(host);
+            } catch {
+                return false;
+            }
+        }
+
+        function isAllowedDriveUrl(value) {
+            try {
+                const url = new URL(value);
+                return url.protocol === 'https:' && ['drive.google.com'].includes(url.hostname.toLowerCase());
+            } catch {
+                return false;
+            }
+        }
+
+        function isAllowedImageUrl(value) {
+            try {
+                const url = new URL(value, window.location.href);
+                if (!['https:', 'http:'].includes(url.protocol)) return false;
+                const host = url.hostname.toLowerCase();
+                const path = url.pathname.toLowerCase();
+                const extensionOk = /\.(gif|jpe?g|png|webp)(?:$|\?)/.test(path);
+                const trustedHost = host === window.location.hostname || host === 'drive.google.com' || host.endsWith('.giphy.com');
+                return extensionOk || trustedHost;
+            } catch {
+                return false;
+            }
+        }
+
+        function safeMediaUrl(rawUrl, type = 'video') {
+            const value = String(rawUrl ?? '').trim();
+            if (!value) return '';
+
+            if (type === 'video') {
+                if (isAllowedYouTubeUrl(value)) return formatarLinkMidia(value);
+                if (isAllowedDriveUrl(value)) return formatarLinkMidia(value);
+                return '';
+            }
+
+            return isAllowedImageUrl(value) ? formatarLinkMidia(value) : '';
+        }
+
+        async function sha256(text) {
+            const data = new TextEncoder().encode(text);
+            const digest = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(digest))
+                .map(byte => byte.toString(16).padStart(2, '0'))
+                .join('');
+        }
 
         // URL Pré-Configurada com a sua Planilha via Google Visualization API
         const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/1c9-_V_6F6ANWPHu5Xvheg-psEPEPVB_4FVy7riPXqtI/gviz/tq?tqx=out:json&gid=390283479";
@@ -426,11 +532,16 @@
         document.addEventListener('DOMContentLoaded', () => {
             atualizarBadgeTreino();
             carregarPerfilUI();
+
+            const adminPasswordInput = document.getElementById('admin-password');
+            adminPasswordInput?.addEventListener('keydown', event => {
+                if (event.key === 'Enter') checkAdminPassword();
+            });
             
             // 1. Tenta carregar do Cache Local para abertura instantânea (0 segundos)
-            const cacheData = localStorage.getItem('scanfit_db_cache');
-            if (cacheData) {
-                dbExercicios = JSON.parse(cacheData);
+            const cacheData = safeJSONParse(localStorage.getItem('scanfit_db_cache'), null);
+            if (Array.isArray(cacheData) && cacheData.length) {
+                dbExercicios = cacheData;
                 renderizarBiblioteca();
             } else {
                 dbExercicios = MOCK_DB; // Fallback imediato
@@ -454,30 +565,54 @@
            ========================================== */
         async function sincronizarGoogleSheets() {
             let sheetUrl = localStorage.getItem('scanfit_sheet_url') || DEFAULT_SHEET_URL;
-            
-            // Ajusta URL padrão do Sheets para URL da API Gviz caso o admin tenha colado errado
-            if (sheetUrl.includes('/edit') || sheetUrl.includes('export?format=csv')) {
-                const matchId = sheetUrl.match(/\/d\/(.*?)\//);
-                const matchGid = sheetUrl.match(/gid=([0-9]+)/);
-                if (matchId) {
-                    sheetUrl = `https://docs.google.com/spreadsheets/d/${matchId[1]}/gviz/tq?tqx=out:json`;
-                    if (matchGid) sheetUrl += `&gid=${matchGid[1]}`;
+
+            // Só aceita Google Sheets. Isso evita que o campo administrativo vire um
+            // mecanismo para buscar conteúdo arbitrário de terceiros.
+            try {
+                const parsed = new URL(sheetUrl);
+                if (parsed.protocol !== 'https:' || !['docs.google.com'].includes(parsed.hostname.toLowerCase())) {
+                    throw new Error('A URL da planilha precisa ser do Google Sheets.');
                 }
+
+                if (sheetUrl.includes('/edit') || sheetUrl.includes('export?format=csv')) {
+                    const matchId = sheetUrl.match(/\/spreadsheets\/d\/([^/]+)/);
+                    const matchGid = sheetUrl.match(/[?&]gid=([0-9]+)/);
+                    if (matchId) {
+                        sheetUrl = `https://docs.google.com/spreadsheets/d/${matchId[1]}/gviz/tq?tqx=out:json`;
+                        if (matchGid) sheetUrl += `&gid=${matchGid[1]}`;
+                    }
+                }
+            } catch (error) {
+                console.error('ScanFit: URL da planilha inválida.', error);
+                return;
             }
 
             try {
-                const response = await fetch(sheetUrl);
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 10000);
+                const response = await fetch(sheetUrl, {
+                    method: 'GET',
+                    cache: 'no-store',
+                    signal: controller.signal
+                });
+                clearTimeout(timeout);
+
+                if (!response.ok) throw new Error(`Google Sheets respondeu ${response.status}.`);
+
                 const text = await response.text();
-                
-                // O Gviz retorna uma string como: /*O_o*/ google.visualization.Query.setResponse({ JSON })
-                // Precisamos limpar isso para ler o JSON real
-                const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+                const firstBrace = text.indexOf('{');
+                const lastBrace = text.lastIndexOf('}');
+                if (firstBrace < 0 || lastBrace <= firstBrace) throw new Error('Resposta da planilha inválida.');
+
+                const jsonString = text.substring(firstBrace, lastBrace + 1);
                 const data = JSON.parse(jsonString);
-                
-                const table = data.table;
-                const columns = table.cols.map(c => c.label ? c.label.toLowerCase().trim() : '');
-                
-                // Mapemento Inteligente de Colunas (para perdoar erros de digitação na planilha)
+                const table = data?.table;
+
+                if (!table || !Array.isArray(table.cols) || !Array.isArray(table.rows)) {
+                    throw new Error('Estrutura de dados da planilha inválida.');
+                }
+
+                const columns = table.cols.map(c => String(c?.label || '').toLowerCase().trim());
                 const idxId = columns.findIndex(c => c === 'id');
                 const idxNome = columns.findIndex(c => c.includes('nome') || c.includes('exerc'));
                 const idxGrupo = columns.findIndex(c => c.includes('grupo') || c.includes('muscul'));
@@ -486,43 +621,46 @@
                 const idxExecucao = columns.findIndex(c => c.includes('exec') || c.includes('instru'));
                 const idxDicas = columns.findIndex(c => c.includes('dica') || c.includes('aviso'));
 
-                if (idxNome === -1) throw new Error("Coluna de Nome não encontrada.");
+                if (idxNome === -1) throw new Error('Coluna de Nome não encontrada.');
 
                 const novosDados = [];
 
                 table.rows.forEach(row => {
-                    if (!row.c || !row.c[idxNome] || !row.c[idxNome].v) return; // Pula linhas vazias
+                    if (!Array.isArray(row?.c) || !row.c[idxNome]?.v) return;
 
-                    const getVal = (idx) => (idx !== -1 && row.c[idx] && row.c[idx].v) ? row.c[idx].v.toString() : "";
-                    
+                    const getVal = (idx) => (
+                        idx !== -1 && row.c[idx]?.v != null
+                            ? String(row.c[idx].v).trim()
+                            : ''
+                    );
+
                     const nome = getVal(idxNome);
-                    let id = getVal(idxId);
-                    if (!id) {
-                        // Gera um ID limpo automaticamente (ex: "Supino Reto" -> "supino-reto")
-                        id = nome.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
-                    }
+                    let id = normalizeId(getVal(idxId) || nome);
+                    if (!id) return;
 
                     novosDados.push({
-                        id: id,
-                        nome: nome,
-                        grupo: getVal(idxGrupo) || 'Geral',
-                        video: getVal(idxVideo),
-                        gif: getVal(idxGif),
-                        execucao: getVal(idxExecucao),
-                        dicas: getVal(idxDicas)
+                        id,
+                        nome: nome.slice(0, 160),
+                        grupo: (getVal(idxGrupo) || 'Geral').slice(0, 80),
+                        video: getVal(idxVideo).slice(0, 1000),
+                        gif: getVal(idxGif).slice(0, 1000),
+                        execucao: getVal(idxExecucao).slice(0, 5000),
+                        dicas: getVal(idxDicas).slice(0, 3000)
                     });
                 });
 
                 if (novosDados.length > 0) {
                     dbExercicios = novosDados;
-                    localStorage.setItem('scanfit_db_cache', JSON.stringify(dbExercicios));
+                    saveLocalJSON('scanfit_db_cache', dbExercicios);
                     renderizarBiblioteca();
-                    document.getElementById('admin-db-status').innerText = `${dbExercicios.length} exercícios`;
-                    console.log("ScanFit: Planilha sincronizada com sucesso!");
-                }
 
+                    const status = document.getElementById('admin-db-status');
+                    if (status) status.textContent = `${dbExercicios.length} exercícios`;
+
+                    console.log('ScanFit: Planilha sincronizada com sucesso!');
+                }
             } catch (err) {
-                console.error("ScanFit: Falha ao carregar planilha. Usando cache ou mock.", err);
+                console.error('ScanFit: Falha ao carregar planilha. Usando cache ou mock.', err);
             }
         }
 
@@ -571,7 +709,7 @@
             // fazemos uma rotação simples para a aba anterior lógica.
             if(exercicioAtual) {
                 exercicioAtual = null;
-                document.getElementById('media-container').innerHTML = ''; // Limpa player
+                document.getElementById('media-container').replaceChildren(); // Limpa player
                 navigate('library');
             } else {
                 navigate('landing');
@@ -615,104 +753,184 @@
         }
 
         function renderizarBiblioteca() {
-            const termo = document.getElementById('input-busca').value.toLowerCase();
+            const input = document.getElementById('input-busca');
             const container = document.getElementById('lista-exercicios');
-            
-            let filtrados = dbExercicios;
-            
+            const termo = String(input?.value || '').toLowerCase().trim();
+
+            let filtrados = Array.isArray(dbExercicios) ? dbExercicios : [];
+
             if (currentCategory !== 'Todos') {
-                filtrados = filtrados.filter(ex => ex.grupo.toLowerCase().includes(currentCategory.toLowerCase()));
-            }
-            if (termo) {
-                filtrados = filtrados.filter(ex => ex.nome.toLowerCase().includes(termo) || ex.grupo.toLowerCase().includes(termo));
+                filtrados = filtrados.filter(ex =>
+                    String(ex.grupo || '').toLowerCase().includes(currentCategory.toLowerCase())
+                );
             }
 
+            if (termo) {
+                filtrados = filtrados.filter(ex =>
+                    String(ex.nome || '').toLowerCase().includes(termo) ||
+                    String(ex.grupo || '').toLowerCase().includes(termo)
+                );
+            }
+
+            container.replaceChildren();
+
             if (filtrados.length === 0) {
-                container.innerHTML = `<div class="text-center text-gray-500 py-10 text-sm">Nenhum exercício encontrado.</div>`;
+                const empty = document.createElement('div');
+                empty.className = 'text-center text-gray-500 py-10 text-sm';
+                empty.textContent = 'Nenhum exercício encontrado.';
+                container.appendChild(empty);
                 return;
             }
 
-            // Injeção em lote (Batch HTML string building) = 100x mais rápido
-            let htmlHTML = "";
+            const fragment = document.createDocumentFragment();
+
             filtrados.forEach(ex => {
-                htmlHTML += `
-                    <div onclick="abrirExercicio('${ex.id}')" class="bg-scanfit-card border border-gray-800 rounded-2xl p-3 flex items-center gap-4 active:scale-95 transition-transform shadow-sm cursor-pointer">
-                        <div class="w-14 h-14 rounded-xl bg-black border border-gray-800 flex flex-col items-center justify-center text-gray-600 flex-shrink-0 relative overflow-hidden">
-                            ${ex.video ? '<i class="fa-solid fa-play text-scanfit-green/50 text-xl"></i>' : '<i class="fa-solid fa-image text-gray-600"></i>'}
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <span class="text-[9px] font-bold text-scanfit-green uppercase tracking-wider block mb-0.5">${ex.grupo}</span>
-                            <h3 class="text-sm font-bold text-white truncate">${ex.nome}</h3>
-                        </div>
-                        <div class="w-8 h-8 rounded-full bg-scanfit-dark flex items-center justify-center border border-gray-800 text-gray-400 flex-shrink-0">
-                            <i class="fa-solid fa-chevron-right text-xs"></i>
-                        </div>
-                    </div>
-                `;
+                const card = document.createElement('div');
+                card.className = 'bg-scanfit-card border border-gray-800 rounded-2xl p-3 flex items-center gap-4 active:scale-95 transition-transform shadow-sm cursor-pointer';
+                card.tabIndex = 0;
+                card.setAttribute('role', 'button');
+                card.setAttribute('aria-label', `Abrir exercício ${ex.nome || ''}`);
+
+                card.addEventListener('click', () => abrirExercicio(ex.id));
+                card.addEventListener('keydown', event => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        abrirExercicio(ex.id);
+                    }
+                });
+
+                const iconWrap = document.createElement('div');
+                iconWrap.className = 'w-14 h-14 rounded-xl bg-black border border-gray-800 flex flex-col items-center justify-center text-gray-600 flex-shrink-0 relative overflow-hidden';
+
+                const icon = document.createElement('i');
+                icon.className = ex.video
+                    ? 'fa-solid fa-play text-scanfit-green/50 text-xl'
+                    : 'fa-solid fa-image text-gray-600';
+                iconWrap.appendChild(icon);
+
+                const info = document.createElement('div');
+                info.className = 'flex-1 min-w-0';
+
+                const group = document.createElement('span');
+                group.className = 'text-[9px] font-bold text-scanfit-green uppercase tracking-wider block mb-0.5';
+                group.textContent = ex.grupo || 'Geral';
+
+                const title = document.createElement('h3');
+                title.className = 'text-sm font-bold text-white truncate';
+                title.textContent = ex.nome || 'Exercício';
+
+                info.append(group, title);
+
+                const arrowWrap = document.createElement('div');
+                arrowWrap.className = 'w-8 h-8 rounded-full bg-scanfit-dark flex items-center justify-center border border-gray-800 text-gray-400 flex-shrink-0';
+                const arrow = document.createElement('i');
+                arrow.className = 'fa-solid fa-chevron-right text-xs';
+                arrowWrap.appendChild(arrow);
+
+                card.append(iconWrap, info, arrowWrap);
+                fragment.appendChild(card);
             });
-            
-            container.innerHTML = htmlHTML;
+
+            container.appendChild(fragment);
         }
 
         /* ==========================================
            VISUALIZAÇÃO DE EXERCÍCIO (PLAYER MÍDIA)
            ========================================== */
         function formatarLinkMidia(url) {
-            if(!url) return '';
-            // Corrige link do Drive para modo Imagem Direta
-            if (url.includes('drive.google.com/file/d/')) {
-                const match = url.match(/\/d\/(.*?)\//);
-                if (match) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+            if (!url) return '';
+
+            try {
+                const parsed = new URL(String(url).trim());
+
+                if (parsed.hostname === 'drive.google.com' && parsed.pathname.includes('/file/d/')) {
+                    const match = parsed.pathname.match(/\/file\/d\/([^/]+)/);
+                    if (match) return `https://drive.google.com/uc?export=view&id=${encodeURIComponent(match[1])}`;
+                }
+
+                if (['youtube.com', 'www.youtube.com', 'm.youtube.com'].includes(parsed.hostname)) {
+                    const videoId = parsed.searchParams.get('v');
+                    if (videoId) return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`;
+                }
+
+                if (parsed.hostname === 'youtu.be') {
+                    const videoId = parsed.pathname.slice(1).split('/')[0];
+                    if (videoId) return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`;
+                }
+
+                return parsed.href;
+            } catch {
+                return '';
             }
-            // Transforma watch comum do YT em Embed
-            if(url.includes('watch?v=')) return url.replace('watch?v=', 'embed/');
-            if(url.includes('youtu.be/')) return url.replace('youtu.be/', 'youtube.com/embed/');
-            return url;
         }
 
         function abrirExercicio(id) {
-            exercicioAtual = dbExercicios.find(item => item.id === id);
+            const safeId = String(id ?? '');
+            exercicioAtual = dbExercicios.find(item => String(item.id) === safeId);
+
             if (!exercicioAtual) {
-                mostrarToast("Exercício não encontrado", "fa-triangle-exclamation");
+                mostrarToast('Exercício não encontrado', 'fa-triangle-exclamation');
                 return;
             }
 
-            document.getElementById('ex-nome').innerText = exercicioAtual.nome;
-            document.getElementById('ex-grupo').innerText = exercicioAtual.grupo;
-            
-            // Formata as instruções (aceita ponto e vírgula ou barra reta)
-            const passosRaw = exercicioAtual.execucao || "Preste atenção na postura.;Siga o movimento com controle.";
-            const separador = passosRaw.includes(';') ? ';' : '|';
-            const passos = passosRaw.split(separador).filter(p => p.trim() !== "");
-            
-            const ul = document.getElementById('ex-instrucoes');
-            ul.innerHTML = passos.map((passo, idx) => `
-                <li class="flex items-start gap-3 bg-black/40 border border-gray-800/50 p-3.5 rounded-xl">
-                    <span class="flex-shrink-0 w-6 h-6 rounded-full bg-scanfit-card border border-scanfit-green/50 flex items-center justify-center text-[10px] font-extrabold text-scanfit-green mt-0.5 shadow-[0_0_10px_rgba(143,227,2,0.1)]">
-                        ${idx + 1}
-                    </span>
-                    <p class="text-[13px] text-gray-300 font-medium leading-relaxed">${passo.trim()}</p>
-                </li>
-            `).join('');
+            document.getElementById('ex-nome').textContent = exercicioAtual.nome || 'Exercício';
+            document.getElementById('ex-grupo').textContent = exercicioAtual.grupo || 'Geral';
 
-            // Dicas
+            const passosRaw = String(
+                exercicioAtual.execucao ||
+                'Preste atenção na postura.;Siga o movimento com controle.'
+            );
+            const separador = passosRaw.includes(';') ? ';' : '|';
+            const passos = passosRaw.split(separador).map(p => p.trim()).filter(Boolean);
+
+            const ul = document.getElementById('ex-instrucoes');
+            ul.replaceChildren();
+
+            const fragment = document.createDocumentFragment();
+            passos.forEach((passo, idx) => {
+                const li = document.createElement('li');
+                li.className = 'flex items-start gap-3 bg-black/40 border border-gray-800/50 p-3.5 rounded-xl';
+
+                const number = document.createElement('span');
+                number.className = 'flex-shrink-0 w-6 h-6 rounded-full bg-scanfit-card border border-scanfit-green/50 flex items-center justify-center text-[10px] font-extrabold text-scanfit-green mt-0.5 shadow-[0_0_10px_rgba(143,227,2,0.1)]';
+                number.textContent = String(idx + 1);
+
+                const text = document.createElement('p');
+                text.className = 'text-[13px] text-gray-300 font-medium leading-relaxed';
+                text.textContent = passo;
+
+                li.append(number, text);
+                fragment.appendChild(li);
+            });
+            ul.appendChild(fragment);
+
             const tipsDiv = document.getElementById('ex-tips-container');
-            if (exercicioAtual.dicas && exercicioAtual.dicas.trim() !== "") {
-                const dicasSeparadas = exercicioAtual.dicas.split(';').join('<br>• ');
-                document.getElementById('ex-tips').innerHTML = '• ' + dicasSeparadas;
+            const tipsEl = document.getElementById('ex-tips');
+            tipsEl.replaceChildren();
+
+            if (exercicioAtual.dicas && String(exercicioAtual.dicas).trim()) {
+                const dicas = String(exercicioAtual.dicas)
+                    .split(';')
+                    .map(d => d.trim())
+                    .filter(Boolean);
+
+                const tipsFragment = document.createDocumentFragment();
+                dicas.forEach(dica => {
+                    const line = document.createElement('div');
+                    line.textContent = `• ${dica}`;
+                    tipsFragment.appendChild(line);
+                });
+                tipsEl.appendChild(tipsFragment);
                 tipsDiv.classList.remove('hidden');
             } else {
                 tipsDiv.classList.add('hidden');
             }
 
-            // Atualiza Botão do Treino
             atualizarBotaoTreinoUI();
-
             navigate('exercise');
-            
-            // Prioriza Vídeo, se não tiver, tenta GIF
-            if(exercicioAtual.video) alternarMidia('video');
-            else if(exercicioAtual.gif) alternarMidia('gif');
+
+            if (exercicioAtual.video) alternarMidia('video');
+            else if (exercicioAtual.gif) alternarMidia('gif');
             else alternarMidia('nenhum');
         }
 
@@ -720,32 +938,62 @@
             const container = document.getElementById('media-container');
             const btnVid = document.getElementById('btn-video');
             const btnGif = document.getElementById('btn-gif');
-            
+
             currentMediaType = tipo;
-            container.innerHTML = ''; // Limpa memória do iframe/img anterior
-            
-            // Estiliza botões
+            container.replaceChildren();
+
             if (tipo === 'video') {
                 btnVid.className = "flex-1 py-3 rounded-xl text-sm font-bold bg-scanfit-green text-black transition-all shadow-md";
                 btnGif.className = "flex-1 py-3 rounded-xl text-sm font-bold text-gray-400 hover:text-white transition-all";
-                
-                if (exercicioAtual.video) {
-                    const url = formatarLinkMidia(exercicioAtual.video);
-                    container.innerHTML = `<iframe src="${url}" class="absolute inset-0 w-full h-full object-cover" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+
+                const url = safeMediaUrl(exercicioAtual?.video, 'video');
+                if (url) {
+                    const iframe = document.createElement('iframe');
+                    iframe.src = url;
+                    iframe.className = 'absolute inset-0 w-full h-full object-cover';
+                    iframe.setAttribute('frameborder', '0');
+                    iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+                    iframe.setAttribute('allowfullscreen', '');
+                    iframe.setAttribute('title', `Vídeo de ${exercicioAtual?.nome || 'exercício'}`);
+                    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+                    container.appendChild(iframe);
                 } else {
-                    container.innerHTML = `<div class="text-gray-500 flex flex-col items-center"><i class="fa-solid fa-video-slash text-2xl mb-1"></i><span class="text-[10px] uppercase font-bold tracking-widest">Sem Vídeo</span></div>`;
+                    mostrarPlaceholderMedia(container, 'fa-video-slash', 'Sem Vídeo');
                 }
-            } else if(tipo === 'gif') {
+            } else if (tipo === 'gif') {
                 btnGif.className = "flex-1 py-3 rounded-xl text-sm font-bold bg-scanfit-green text-black transition-all shadow-md";
                 btnVid.className = "flex-1 py-3 rounded-xl text-sm font-bold text-gray-400 hover:text-white transition-all";
-                
-                if (exercicioAtual.gif) {
-                    const url = formatarLinkMidia(exercicioAtual.gif);
-                    container.innerHTML = `<img src="${url}" class="absolute inset-0 w-full h-full object-cover opacity-90">`;
+
+                const url = safeMediaUrl(exercicioAtual?.gif, 'gif');
+                if (url) {
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.className = 'absolute inset-0 w-full h-full object-cover opacity-90';
+                    img.alt = `Demonstração em GIF de ${exercicioAtual?.nome || 'exercício'}`;
+                    img.loading = 'lazy';
+                    img.referrerPolicy = 'no-referrer';
+                    container.appendChild(img);
                 } else {
-                    container.innerHTML = `<div class="text-gray-500 flex flex-col items-center"><i class="fa-solid fa-image text-2xl mb-1"></i><span class="text-[10px] uppercase font-bold tracking-widest">Sem GIF</span></div>`;
+                    mostrarPlaceholderMedia(container, 'fa-image', 'Sem GIF');
                 }
+            } else {
+                mostrarPlaceholderMedia(container, 'fa-circle-exclamation', 'Mídia indisponível');
             }
+        }
+
+        function mostrarPlaceholderMedia(container, iconClass, label) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'text-gray-500 flex flex-col items-center';
+
+            const icon = document.createElement('i');
+            icon.className = `fa-solid ${iconClass} text-2xl mb-1`;
+
+            const text = document.createElement('span');
+            text.className = 'text-[10px] uppercase font-bold tracking-widest';
+            text.textContent = label;
+
+            wrapper.append(icon, text);
+            container.appendChild(wrapper);
         }
 
         /* ==========================================
@@ -767,7 +1015,7 @@
                 mostrarToast("Adicionado ao treino!", "fa-check-circle");
             }
             
-            localStorage.setItem('scanfit_treino', JSON.stringify(treinoSalvo));
+            saveLocalJSON('scanfit_treino', treinoSalvo);
             atualizarBotaoTreinoUI();
             atualizarBadgeTreino();
         }
@@ -797,9 +1045,9 @@
         function renderizarTreino() {
             const container = document.getElementById('lista-treino');
             const emptyState = document.getElementById('workout-empty');
-            
-            if (treinoSalvo.length === 0) {
-                container.innerHTML = '';
+            container.replaceChildren();
+
+            if (!Array.isArray(treinoSalvo) || treinoSalvo.length === 0) {
                 emptyState.classList.remove('hidden');
                 emptyState.classList.add('flex');
                 return;
@@ -808,25 +1056,42 @@
             emptyState.classList.add('hidden');
             emptyState.classList.remove('flex');
 
-            let html = "";
+            const fragment = document.createDocumentFragment();
+
             treinoSalvo.forEach((ex, index) => {
-                html += `
-                    <div class="bg-black border border-gray-800 rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden">
-                        <div class="absolute left-0 top-0 bottom-0 w-1 bg-scanfit-green"></div>
-                        <div class="w-8 h-8 rounded-full bg-scanfit-card border border-gray-800 flex items-center justify-center text-xs font-bold text-gray-400 flex-shrink-0">
-                            ${index + 1}
-                        </div>
-                        <div class="flex-1 min-w-0 pr-2">
-                            <span class="text-[9px] font-bold text-gray-500 uppercase tracking-wider block mb-0.5">${ex.grupo}</span>
-                            <h3 class="text-sm font-bold text-white truncate">${ex.nome}</h3>
-                        </div>
-                        <button onclick="abrirExercicio('${ex.id}')" class="bg-scanfit-green text-black px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-wide shadow-sm active:scale-95 transition-transform">
-                            TREINAR
-                        </button>
-                    </div>
-                `;
+                const card = document.createElement('div');
+                card.className = 'bg-black border border-gray-800 rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden';
+
+                const accent = document.createElement('div');
+                accent.className = 'absolute left-0 top-0 bottom-0 w-1 bg-scanfit-green';
+
+                const number = document.createElement('div');
+                number.className = 'w-8 h-8 rounded-full bg-scanfit-card border border-gray-800 flex items-center justify-center text-xs font-bold text-gray-400 flex-shrink-0';
+                number.textContent = String(index + 1);
+
+                const info = document.createElement('div');
+                info.className = 'flex-1 min-w-0 pr-2';
+
+                const group = document.createElement('span');
+                group.className = 'text-[9px] font-bold text-gray-500 uppercase tracking-wider block mb-0.5';
+                group.textContent = ex.grupo || 'Geral';
+
+                const title = document.createElement('h3');
+                title.className = 'text-sm font-bold text-white truncate';
+                title.textContent = ex.nome || 'Exercício';
+
+                info.append(group, title);
+
+                const button = document.createElement('button');
+                button.className = 'bg-scanfit-green text-black px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-wide shadow-sm active:scale-95 transition-transform';
+                button.textContent = 'TREINAR';
+                button.addEventListener('click', () => abrirExercicio(ex.id));
+
+                card.append(accent, number, info, button);
+                fragment.appendChild(card);
             });
-            container.innerHTML = html;
+
+            container.appendChild(fragment);
         }
 
         function limparTreino() {
@@ -859,7 +1124,7 @@
                 peso: document.getElementById('prof-peso').value,
                 altura: document.getElementById('prof-altura').value,
             };
-            localStorage.setItem('scanfit_perfil', JSON.stringify(perfilDados));
+            saveLocalJSON('scanfit_perfil', perfilDados);
             mostrarToast("Dados salvos com sucesso!");
         }
 
@@ -894,26 +1159,74 @@
         /* ==========================================
            PAINEL ADMIN SECRETO
            ========================================== */
-        function checkAdminPassword() {
+        async function checkAdminPassword() {
+            const now = Date.now();
+            if (now < adminLockedUntil) {
+                const seconds = Math.ceil((adminLockedUntil - now) / 1000);
+                mostrarToast(`Tente novamente em ${seconds}s`, 'fa-clock');
+                return;
+            }
+
             const pwd = document.getElementById('admin-password').value;
-            if (pwd === 'ScanFit@123') {
-                document.getElementById('admin-auth').classList.add('hidden');
-                document.getElementById('admin-panel').classList.remove('hidden');
-                document.getElementById('admin-url').value = localStorage.getItem('scanfit_sheet_url') || DEFAULT_SHEET_URL;
-                document.getElementById('admin-password').value = '';
-            } else {
-                mostrarToast("Senha incorreta", "fa-xmark");
+            if (!pwd) {
+                mostrarToast('Digite a senha', 'fa-triangle-exclamation');
+                return;
+            }
+
+            try {
+                const hash = await sha256(pwd);
+
+                if (hash === ADMIN_PASSWORD_HASH) {
+                    adminAttempts = 0;
+                    document.getElementById('admin-auth').classList.add('hidden');
+                    document.getElementById('admin-panel').classList.remove('hidden');
+                    document.getElementById('admin-url').value =
+                        localStorage.getItem('scanfit_sheet_url') || DEFAULT_SHEET_URL;
+                    document.getElementById('admin-password').value = '';
+                } else {
+                    adminAttempts++;
+                    if (adminAttempts >= 5) {
+                        adminLockedUntil = Date.now() + 30000;
+                        adminAttempts = 0;
+                        mostrarToast('Muitas tentativas. Aguarde 30s', 'fa-lock');
+                    } else {
+                        mostrarToast('Senha incorreta', 'fa-xmark');
+                    }
+                }
+            } catch (error) {
+                console.error('ScanFit: falha na autenticação local.', error);
+                mostrarToast('Não foi possível autenticar', 'fa-triangle-exclamation');
             }
         }
 
         function salvarURLPlanilha() {
-            const url = document.getElementById('admin-url').value.trim();
-            if(url) {
+            const input = document.getElementById('admin-url');
+            const url = input.value.trim();
+
+            if (!url) {
+                mostrarToast('Informe a URL da planilha', 'fa-triangle-exclamation');
+                return;
+            }
+
+            try {
+                const parsed = new URL(url);
+                if (parsed.protocol !== 'https:' || parsed.hostname.toLowerCase() !== 'docs.google.com') {
+                    throw new Error('URL inválida');
+                }
+            } catch {
+                mostrarToast('Use uma URL válida do Google Sheets', 'fa-triangle-exclamation');
+                return;
+            }
+
+            try {
                 localStorage.setItem('scanfit_sheet_url', url);
-                mostrarToast("Configuração Salva!");
-                sincronizarGoogleSheets(); // Força update
+                mostrarToast('Configuração salva!');
+                sincronizarGoogleSheets();
+            } catch {
+                mostrarToast('Não foi possível salvar a configuração', 'fa-triangle-exclamation');
             }
         }
+
     </script>
 </body>
 </html>
