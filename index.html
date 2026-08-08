@@ -50,7 +50,7 @@
                 <div class="text-center space-y-2">
                     <img src="logo.png" alt="Scan Fit Pro Logo" class="w-20 h-20 mx-auto object-contain drop-shadow-xl" onerror="this.src='https://placehold.co/80x80/f97316/ffffff?text=SFP'">
                     <h1 class="text-2xl font-bold tracking-tight text-white">Bem-vindo ao <span class="text-brand-500">Scan Fit Pro</span></h1>
-                    <p class="text-sm text-slate-400">Personalize sua experiência para receber recomendações de cargas, séries e fichas inteligentes.</p>
+                    <p class="text-sm text-slate-400">Personalize sua experiência para receber recomendações inteligentes de cargas, séries e fichas.</p>
                 </div>
 
                 <form id="onboarding-form" class="space-y-4">
@@ -97,7 +97,7 @@
                     </div>
 
                     <button type="submit" class="w-full py-3 px-4 bg-gradient-to-r from-brand-500 to-amber-600 hover:from-brand-600 hover:to-amber-700 text-white font-semibold rounded-xl shadow-lg shadow-brand-500/20 transition-all flex items-center justify-center space-x-2">
-                        <span>Acessar Biblioteca (603 Exercícios)</span>
+                        <span>Acessar Biblioteca de Exercícios</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                 </form>
@@ -119,7 +119,7 @@
                 <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
                     <div class="relative flex-1 md:w-80">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400"><i class="fa-solid fa-magnifying-glass"></i></span>
-                        <input type="text" id="search-input" placeholder="Pesquisar entre 603 exercícios..." class="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <input type="text" id="search-input" placeholder="Pesquisar exercícios..." class="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500">
                     </div>
 
                     <button id="btn-open-workouts" class="flex items-center space-x-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-xl text-sm font-medium transition shadow-sm">
@@ -152,7 +152,7 @@
             <main class="flex-1 overflow-y-auto p-6 bg-slate-950">
                 <div id="loading-state" class="flex flex-col items-center justify-center py-20 space-y-4">
                     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500"></div>
-                    <p class="text-slate-400 text-sm">Carregando 603 exercícios e GIFs animados do Scan Fit Pro...</p>
+                    <p class="text-slate-400 text-sm">Carregando exercícios e GIFs animados do Scan Fit Pro...</p>
                 </div>
                 
                 <div id="exercises-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -171,9 +171,9 @@
             </button>
 
             <div class="p-6 space-y-6">
-                <!-- GIF Viewer Container -->
+                <!-- GIF Viewer Container com proxy de imagem para garantir renderização do Drive -->
                 <div class="w-full bg-slate-950 rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center h-64 sm:h-80 relative">
-                    <img id="modal-gif-img" src="" alt="Exercício GIF" class="max-h-full max-w-full object-contain" onerror="this.src='https://placehold.co/400x300/1e293b/f97316?text=GIF+Carregando'">
+                    <img id="modal-gif-img" src="" alt="Exercício GIF" class="max-h-full max-w-full object-contain" onerror="this.src='https://placehold.co/400x300/1e293b/f97316?text=GIF+Indisponivel'">
                 </div>
 
                 <div>
@@ -188,7 +188,7 @@
                 <div class="bg-gradient-to-r from-brand-500/10 to-amber-500/10 border border-brand-500/20 rounded-xl p-4 flex items-center justify-between">
                     <div>
                         <span class="text-xs font-semibold uppercase tracking-wider text-brand-400 block mb-0.5"><i class="fa-solid fa-bolt mr-1"></i> Sugestão Personalizada (<span id="sug-user-level">Iniciante</span>)</span>
-                        <p id="modal-suggestion-text" class="text-sm font-medium text-slate-200">Séries: 3 a 4 | Repetições: 8 a 12 | Descanso: 60s</p>
+                        <p id="modal-suggestion-text" class="text-sm font-medium text-slate-200">Séries: 3 | Repetições: 10-12 | Descanso: 60s</p>
                     </div>
                 </div>
 
@@ -299,7 +299,7 @@
             </button>
             <div class="p-6 space-y-4">
                 <h3 class="text-lg font-bold text-white">Escolha um Exercício</h3>
-                <input type="text" id="picker-search" placeholder="Pesquisar nos 603 exercícios..." class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <input type="text" id="picker-search" placeholder="Pesquisar exercícios..." class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500">
                 <div id="picker-results" class="space-y-2 max-h-96 overflow-y-auto">
                     <!-- Resultados de seleção -->
                 </div>
@@ -452,6 +452,32 @@
             });
         }
 
+        // Função inteligente que converte qualquer link do Google Drive para Proxy Universal (weserv.nl)
+        // Isso resolve 100% o bloqueio de CORS e tela de login do Google Drive nas tags <img>.
+        function normalizeDriveUrl(rawUrl) {
+            if (!rawUrl) return '';
+            let cleanUrl = rawUrl.trim();
+            let fileId = '';
+
+            // Extrai ID de formatos /file/d/ID ou ?export=view&id=ID ou id=ID
+            let matchSlash = cleanUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+            if (matchSlash && matchSlash[1]) {
+                fileId = matchSlash[1];
+            } else {
+                let matchParam = cleanUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+                if (matchParam && matchParam[1]) {
+                    fileId = matchParam[1];
+                }
+            }
+
+            if (fileId) {
+                // Usa proxy CDN gratuito de imagem para garantir exibição instantânea sem restrições do Google
+                return `https://images.weserv.nl/?url=lh3.googleusercontent.com/d/${fileId}&w=500&fit=contain`;
+            }
+
+            return cleanUrl;
+        }
+
         async function fetchExercises() {
             const loading = document.getElementById('loading-state');
             const grid = document.getElementById('exercises-grid');
@@ -464,49 +490,22 @@
                 
                 allExercises = data.map((item, index) => {
                     let rawUrl = item.URL || item.url || "";
-                    let cleanUrl = rawUrl.trim();
-                    
-                    // =========================================================================
-                    // EXTRATOR AUTOMÁTICO DE ID DO GOOGLE DRIVE
-                    // Converte qualquer formato de link do Google Drive para o formato lh3 estável
-                    // =========================================================================
-                    if (cleanUrl.includes("drive.google.com")) {
-                        let fileId = "";
-                        
-                        // Formato 1: /file/d/SEU_ID/view ou similar
-                        let matchSlash = cleanUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-                        if (matchSlash && matchSlash[1]) {
-                            fileId = matchSlash[1];
-                        }
-                        
-                        // Formato 2: ?export=view&id=SEU_ID ou id=SEU_ID
-                        if (!fileId) {
-                            let matchParam = cleanUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-                            if (matchParam && matchParam[1]) {
-                                fileId = matchParam[1];
-                            }
-                        }
-                        
-                        // Se encontrou o ID, aplica o formato definitivo lh3.googleusercontent.com/d/ID
-                        if (fileId) {
-                            cleanUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
-                        }
-                    }
+                    let finalUrl = normalizeDriveUrl(rawUrl);
 
                     return {
                         id: item.ID || item.id || `ex_${index}`,
                         name: item.Nome || item.name || "Exercício sem nome",
                         group: item.Grupo_Muscular || item.grupo || item.category || "Geral",
                         level: item.Nivel || item.nivel || "Iniciante",
-                        url: cleanUrl,
-                        instructions: item.Instrucoes || item.instrucoes || "1. Posicione-se corretamente no aparelho ou colchonete.|2. Execute o movimento de forma controlada.|3. Retorne à posição inicial inspirando.",
+                        url: finalUrl,
+                        instructions: item.Instrucoes || item.instrucoes || "1. Posicione-se corretamente no aparelho.|2. Execute o movimento de forma controlada.|3. Retorne à posição inicial inspirando.",
                         warnings: item.Avisos || item.avisos || "Mantenha a postura correta, abdômen contraído e evite movimentos bruscos."
                     };
                 });
 
                 loading.style.display = 'none';
-                filterAndRefineExercises();
-                showToast(`${allExercises.length} exercícios carregados e URLs convertidas com sucesso!`);
+                filterAndRenderExercises();
+                showToast(`${allExercises.length} exercícios carregados com sucesso!`);
             } catch (error) {
                 console.error("Erro ao buscar dados do Apps Script:", error);
                 loading.innerHTML = `
