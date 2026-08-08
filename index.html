@@ -31,25 +31,26 @@
     </script>
     <style>
         body { font-family: 'Inter', sans-serif; }
-        /* Custom scrollbar for sleek UI */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 h-full flex flex-col justify-between antialiased selection:bg-brand-500 selection:text-white">
+<body class="bg-slate-950 text-slate-100 h-full flex flex-col justify-between antialiased selection:bg-brand-500 selection:text-white">
 
     <div id="app-container" class="flex-1 flex flex-col overflow-hidden">
         
         <!-- ================= PAGE 1: ONBOARDING / ENTREVISTA ================= -->
-        <section id="view-onboarding" class="flex-1 flex items-center justify-center p-4 overflow-y-auto bg-gradient-to-br from-slate-950 via-slate-900 to-slate-900">
-            <div class="max-w-md w-full bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl p-8 space-y-6">
+        <section id="view-onboarding" class="flex-1 flex items-center justify-center p-4 overflow-y-auto bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+            <div class="max-w-md w-full bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl shadow-2xl p-8 space-y-6">
                 
                 <div class="text-center space-y-2">
-                    <img src="logo.png" alt="Scan Fit Pro Logo" class="w-20 h-20 mx-auto object-contain drop-shadow-lg" onerror="this.src='https://placehold.co/80x80/f97316/ffffff?text=SFP'">
+                    <img src="logo.png" alt="Scan Fit Pro Logo" class="w-20 h-20 mx-auto object-contain drop-shadow-xl" onerror="this.src='https://placehold.co/80x80/f97316/ffffff?text=SFP'">
                     <h1 class="text-2xl font-bold tracking-tight text-white">Bem-vindo ao <span class="text-brand-500">Scan Fit Pro</span></h1>
-                    <p class="text-sm text-slate-400">Personalize sua experiência respondendo rápida e inteligentemente à nossa entrevista.</p>
+                    <p class="text-sm text-slate-400">Personalize sua experiência para receber recomendações de cargas, séries e fichas inteligentes.</p>
                 </div>
 
                 <form id="onboarding-form" class="space-y-4">
@@ -57,50 +58,46 @@
                         <label class="block text-xs font-medium text-slate-300 uppercase tracking-wider mb-1">Nome Completo</label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500"><i class="fa-solid fa-user"></i></span>
-                            <input type="text" id="user-name" required placeholder="Ex: Carlos Silva" class="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent text-white placeholder-slate-500">
+                            <input type="text" id="user-name" required placeholder="Ex: Carlos Silva" class="w-full pl-10 pr-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-white placeholder-slate-500">
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-3 gap-3">
                         <div>
-                            <label class="block text-xs font-medium text-slate-300 uppercase tracking-wider mb-1">Idade (Anos)</label>
-                            <div class="relative">
-                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500"><i class="fa-solid fa-calendar"></i></span>
-                                <input type="number" id="user-age" required min="10" max="120" placeholder="28" class="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent text-white placeholder-slate-500">
-                            </div>
+                            <label class="block text-xs font-medium text-slate-300 uppercase tracking-wider mb-1">Idade</label>
+                            <input type="number" id="user-age" required min="10" max="120" placeholder="28" class="w-full px-3 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-white placeholder-slate-500">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-300 uppercase tracking-wider mb-1">Altura (cm)</label>
-                            <div class="relative">
-                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500"><i class="fa-solid fa-ruler-vertical"></i></span>
-                                <input type="number" id="user-height" required min="100" max="250" placeholder="175" class="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent text-white placeholder-slate-500">
-                            </div>
+                            <input type="number" id="user-height" required min="100" max="250" placeholder="175" class="w-full px-3 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-white placeholder-slate-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 uppercase tracking-wider mb-1">Peso (kg)</label>
+                            <input type="number" step="0.1" id="user-weight" required min="30" max="300" placeholder="75.5" class="w-full px-3 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-white placeholder-slate-500">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium text-slate-300 uppercase tracking-wider mb-1">Peso Atual (kg)</label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500"><i class="fa-solid fa-weight-scale"></i></span>
-                            <input type="number" step="0.1" id="user-weight" required min="30" max="300" placeholder="75.5" class="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent text-white placeholder-slate-500">
-                        </div>
+                        <label class="block text-xs font-medium text-slate-300 uppercase tracking-wider mb-1">Nível de Condicionamento</label>
+                        <select id="user-level" class="w-full px-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-white">
+                            <option value="Iniciante">Iniciante (Primeiros meses)</option>
+                            <option value="Intermediário">Intermediário (Treino regular)</option>
+                            <option value="Avançado">Avançado (Alta performance)</option>
+                        </select>
                     </div>
 
                     <div>
                         <label class="block text-xs font-medium text-slate-300 uppercase tracking-wider mb-1">Objetivo Principal</label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500"><i class="fa-solid fa-bullseye"></i></span>
-                            <select id="user-goal" class="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent text-white">
-                                <option value="Hipertrofia">Hipertrofia Muscular</option>
-                                <option value="Emagrecimento">Perda de Gordura / Emagrecimento</option>
-                                <option value="Condicionamento">Condicionamento Físico Geral</option>
-                                <option value="Forca">Ganho de Força Pura</option>
-                            </select>
-                        </div>
+                        <select id="user-goal" class="w-full px-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 text-white">
+                            <option value="Hipertrofia">Hipertrofia Muscular (Ganho de Massa)</option>
+                            <option value="Emagrecimento">Perda de Gordura / Definição</option>
+                            <option value="Condicionamento">Condicionamento Físico Geral</option>
+                            <option value="Forca">Ganho de Força Pura</option>
+                        </select>
                     </div>
 
                     <button type="submit" class="w-full py-3 px-4 bg-gradient-to-r from-brand-500 to-amber-600 hover:from-brand-600 hover:to-amber-700 text-white font-semibold rounded-xl shadow-lg shadow-brand-500/20 transition-all flex items-center justify-center space-x-2">
-                        <span>Acessar Biblioteca</span>
+                        <span>Acessar Biblioteca (603 Exercícios)</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                 </form>
@@ -109,22 +106,20 @@
 
         <!-- ================= PAGE 2: DASHBOARD / BIBLIOTECA PRINCIPAL ================= -->
         <section id="view-dashboard" class="flex-1 hidden flex flex-col overflow-hidden">
-            
-            <!-- Top Navbar -->
-            <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4 z-10">
+            <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4 z-10 shadow-md">
                 <div class="flex items-center space-x-3 w-full md:w-auto">
                     <img src="logo.png" alt="Logo" class="w-10 h-10 object-contain" onerror="this.src='https://placehold.co/40x40/f97316/ffffff?text=SFP'">
                     <div>
                         <h2 class="font-bold text-lg text-white flex items-center gap-2">Scan Fit Pro <span id="user-badge" class="text-xs font-normal px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-400 border border-brand-500/30">IMC: --</span></h2>
-                        <p class="text-xs text-slate-400">Olá, <span id="display-username" class="text-slate-200 font-medium">Atleta</span> | Objetivo: <span id="display-goal" class="text-slate-200">Hipertrofia</span></p>
+                        <p class="text-xs text-slate-400">Atleta: <span id="display-username" class="text-slate-200 font-medium">--</span> | Nível: <span id="display-level" class="text-brand-400 font-medium">--</span></p>
                     </div>
                 </div>
 
-                <!-- Search & Filters -->
+                <!-- Search & Actions -->
                 <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                    <div class="relative flex-1 md:w-72">
+                    <div class="relative flex-1 md:w-80">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400"><i class="fa-solid fa-magnifying-glass"></i></span>
-                        <input type="text" id="search-input" placeholder="Buscar exercícios..." class="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <input type="text" id="search-input" placeholder="Pesquisar entre 603 exercícios..." class="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500">
                     </div>
 
                     <button id="btn-open-workouts" class="flex items-center space-x-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-xl text-sm font-medium transition shadow-sm">
@@ -132,7 +127,7 @@
                         <span>Meus Treinos</span>
                     </button>
 
-                    <button id="btn-edit-profile" class="flex items-center justify-center p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl text-sm transition" title="Editar Perfil / Entrevista">
+                    <button id="btn-edit-profile" class="flex items-center justify-center p-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl text-sm transition" title="Editar Perfil / Entrevista">
                         <i class="fa-solid fa-user-pen"></i>
                     </button>
                 </div>
@@ -148,24 +143,27 @@
                 <button class="cat-filter px-4 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition shrink-0" data-category="Bíceps">Bíceps</button>
                 <button class="cat-filter px-4 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition shrink-0" data-category="Tríceps">Tríceps</button>
                 <button class="cat-filter px-4 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition shrink-0" data-category="Abdômen">Abdômen</button>
+                <button class="cat-filter px-4 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition shrink-0" data-category="Glúteos">Glúteos</button>
+                <button class="cat-filter px-4 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition shrink-0" data-category="Panturrilha">Panturrilha</button>
+                <button class="cat-filter px-4 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition shrink-0" data-category="Cardio">Cardio</button>
             </div>
 
             <!-- Main Grid of Exercises -->
             <main class="flex-1 overflow-y-auto p-6 bg-slate-950">
                 <div id="loading-state" class="flex flex-col items-center justify-center py-20 space-y-4">
                     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500"></div>
-                    <p class="text-slate-400 text-sm">Carregando a biblioteca oficial de GIFs do seu Apps Script...</p>
+                    <p class="text-slate-400 text-sm">Carregando 603 exercícios e GIFs animados do Scan Fit Pro...</p>
                 </div>
                 
                 <div id="exercises-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    <!-- Cards inseridos via JavaScript dinamicamente -->
+                    <!-- Cards dinâmicos -->
                 </div>
             </main>
         </section>
 
     </div>
 
-    <!-- ================= MODAL: DETALHES DO EXERCÍCIO & EXECUÇÃO ================= -->
+    <!-- ================= MODAL: DETALHES DO EXERCÍCIO & SUGESTÃO DE CARGA ================= -->
     <div id="modal-exercise" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative flex flex-col">
             <button id="close-modal-exercise" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 transition z-10">
@@ -173,8 +171,9 @@
             </button>
 
             <div class="p-6 space-y-6">
-                <div class="w-full bg-slate-950 rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center h-64 sm:h-80">
-                    <img id="modal-gif-img" src="" alt="Exercício GIF" class="max-h-full max-w-full object-contain" onerror="this.src='https://placehold.co/400x300/1e293b/f97316?text=GIF+Indisponivel'">
+                <!-- GIF Viewer Container -->
+                <div class="w-full bg-slate-950 rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center h-64 sm:h-80 relative">
+                    <img id="modal-gif-img" src="" alt="Exercício GIF" class="max-h-full max-w-full object-contain" onerror="this.src='https://placehold.co/400x300/1e293b/f97316?text=GIF+Carregando'">
                 </div>
 
                 <div>
@@ -185,28 +184,36 @@
                     <h2 id="modal-title" class="text-xl sm:text-2xl font-bold text-white">Nome do Exercício</h2>
                 </div>
 
+                <!-- Painel de Sugestão de Carga Inteligente baseado no Nível -->
+                <div class="bg-gradient-to-r from-brand-500/10 to-amber-500/10 border border-brand-500/20 rounded-xl p-4 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-brand-400 block mb-0.5"><i class="fa-solid fa-bolt mr-1"></i> Sugestão Personalizada (<span id="sug-user-level">Iniciante</span>)</span>
+                        <p id="modal-suggestion-text" class="text-sm font-medium text-slate-200">Séries: 3 a 4 | Repetições: 8 a 12 | Descanso: 60s</p>
+                    </div>
+                </div>
+
                 <div class="space-y-4">
                     <div>
                         <h3 class="text-sm font-semibold text-brand-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                            <i class="fa-solid fa-list-check"></i> Instruções de Execução
+                            <i class="fa-solid fa-list-check"></i> Instruções de Execução Passo a Passo
                         </h3>
-                        <div id="modal-instructions" class="text-sm text-slate-300 bg-slate-800/60 border border-slate-800 p-4 rounded-xl space-y-2">
-                            <!-- Instruções inseridas aqui -->
+                        <div id="modal-instructions" class="text-sm text-slate-300 bg-slate-800/60 border border-slate-800 p-4 rounded-xl space-y-2.5">
+                            <!-- Instruções detalhadas -->
                         </div>
                     </div>
 
                     <div>
                         <h3 class="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                            <i class="fa-solid fa-triangle-exclamation"></i> Avisos e Segurança
+                            <i class="fa-solid fa-triangle-exclamation"></i> Avisos e Postura Correta
                         </h3>
                         <div id="modal-warnings" class="text-sm text-amber-200/90 bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl">
-                            <!-- Avisos inseridos aqui -->
+                            <!-- Avisos -->
                         </div>
                     </div>
                 </div>
 
                 <div class="pt-4 border-t border-slate-800 flex items-center justify-end gap-3">
-                    <button id="btn-add-to-workout-modal" class="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-medium rounded-xl text-sm transition flex items-center gap-2">
+                    <button id="btn-add-to-workout-modal" class="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-medium rounded-xl text-sm transition flex items-center gap-2 shadow-lg shadow-brand-500/20">
                         <i class="fa-solid fa-plus"></i>
                         <span>Adicionar a um Treino</span>
                     </button>
@@ -228,7 +235,7 @@
                         <h2 class="text-xl font-bold text-white flex items-center gap-2">
                             <i class="fa-solid fa-dumbbell text-brand-500"></i> Meus Treinos Personalizados
                         </h2>
-                        <p class="text-xs text-slate-400">Gerencie e monte fichas de treino salvas diretamente no seu aparelho.</p>
+                        <p class="text-xs text-slate-400">Fichas de treino salvas com segurança no seu próprio aparelho.</p>
                     </div>
                     <button id="btn-new-workout" class="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white font-medium rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-lg shadow-brand-500/20">
                         <i class="fa-solid fa-circle-plus"></i>
@@ -237,7 +244,7 @@
                 </div>
 
                 <div id="workouts-list-container" class="space-y-4">
-                    <!-- Lista de treinos salvos -->
+                    <!-- Fichas salvas -->
                 </div>
             </div>
         </div>
@@ -256,7 +263,7 @@
                 <div class="space-y-4">
                     <div>
                         <label class="block text-xs font-medium text-slate-300 uppercase tracking-wider mb-1">Nome do Treino</label>
-                        <input type="text" id="builder-name" placeholder="Ex: Treino A - Peito e Tríceps" class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <input type="text" id="builder-name" placeholder="Ex: Treino A - Peito, Ombro e Tríceps" class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-300 uppercase tracking-wider mb-1">Descrição / Observações</label>
@@ -271,7 +278,7 @@
                             </button>
                         </div>
                         <div id="builder-exercises-list" class="space-y-2 max-h-60 overflow-y-auto pr-1">
-                            <!-- Exercícios vinculados -->
+                            <!-- Lista vinculada -->
                         </div>
                     </div>
                 </div>
@@ -284,7 +291,7 @@
         </div>
     </div>
 
-    <!-- ================= MODAL: SELECIONAR EXERCÍCIO DA BIBLIOTECA PARA O TREINO ================= -->
+    <!-- ================= MODAL: SELECIONAR EXERCÍCIO DA BIBLIOTECA ================= -->
     <div id="modal-picker" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full max-h-[85vh] overflow-y-auto shadow-2xl relative flex flex-col">
             <button id="close-picker" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 transition z-10">
@@ -292,27 +299,28 @@
             </button>
             <div class="p-6 space-y-4">
                 <h3 class="text-lg font-bold text-white">Escolha um Exercício</h3>
-                <input type="text" id="picker-search" placeholder="Pesquisar na biblioteca..." class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <input type="text" id="picker-search" placeholder="Pesquisar nos 603 exercícios..." class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500">
                 <div id="picker-results" class="space-y-2 max-h-96 overflow-y-auto">
-                    <!-- Lista de seleção -->
+                    <!-- Resultados de seleção -->
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Notification Toast Customizado (substitui alert) -->
+    <!-- Toast Notification System -->
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
 
+    <!-- ================= JAVASCRIPT LOGIC ================= -->
     <script>
-        // Apps Script Web App URL informado pelo usuário
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby9tGHRG3vBcqFwy-lFs-eQQgVQif4mZNN1nAO9QLgB5Cj7RiHzhiR79R2kMr2yvKZX/exec";
 
         let allExercises = [];
         let userData = {
             name: "",
-            age: 0,
-            height: 0,
-            weight: 0,
+            age: 25,
+            height: 175,
+            weight: 70,
+            level: "Iniciante",
             goal: "Hipertrofia",
             imc: 0
         };
@@ -320,7 +328,6 @@
         let currentEditingWorkoutId = null;
         let tempWorkoutExercises = [];
 
-        // Inicialização ao carregar a página
         window.addEventListener('DOMContentLoaded', () => {
             loadUserData();
             setupEventListeners();
@@ -333,10 +340,7 @@
             toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check text-emerald-200' : 'fa-circle-info text-brand-400'}"></i><span>${message}</span>`;
             container.appendChild(toast);
             
-            setTimeout(() => {
-                toast.classList.remove('translate-y-2', 'opacity-0');
-            }, 10);
-
+            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
             setTimeout(() => {
                 toast.classList.add('translate-y-2', 'opacity-0');
                 setTimeout(() => toast.remove(), 300);
@@ -351,9 +355,9 @@
                 document.getElementById('user-age').value = userData.age;
                 document.getElementById('user-height').value = userData.height;
                 document.getElementById('user-weight').value = userData.weight;
+                document.getElementById('user-level').value = userData.level || 'Iniciante';
                 document.getElementById('user-goal').value = userData.goal;
                 
-                // Se já preencheu antes, entra direto no dashboard
                 enterDashboard();
             }
         }
@@ -363,9 +367,8 @@
             document.getElementById('view-dashboard').classList.remove('hidden');
             
             document.getElementById('display-username').textContent = userData.name;
-            document.getElementById('display-goal').textContent = userData.goal;
+            document.getElementById('display-level').textContent = userData.level;
             
-            // Cálculo do IMC
             const heightM = userData.height / 100;
             const imc = (userData.weight / (heightM * heightM)).toFixed(1);
             userData.imc = imc;
@@ -375,13 +378,13 @@
         }
 
         function setupEventListeners() {
-            // Formulário de entrevista
             document.getElementById('onboarding-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 userData.name = document.getElementById('user-name').value.trim();
                 userData.age = parseInt(document.getElementById('user-age').value);
                 userData.height = parseFloat(document.getElementById('user-height').value);
                 userData.weight = parseFloat(document.getElementById('user-weight').value);
+                userData.level = document.getElementById('user-level').value;
                 userData.goal = document.getElementById('user-goal').value;
 
                 localStorage.setItem('scanfit_user', JSON.stringify(userData));
@@ -394,7 +397,6 @@
                 document.getElementById('view-onboarding').classList.remove('hidden');
             });
 
-            // Filtros de busca e categoria
             document.getElementById('search-input').addEventListener('input', filterAndRenderExercises);
             
             document.querySelectorAll('.cat-filter').forEach(btn => {
@@ -409,7 +411,6 @@
                 });
             });
 
-            // Modais
             document.getElementById('close-modal-exercise').addEventListener('click', () => {
                 document.getElementById('modal-exercise').classList.add('hidden');
             });
@@ -423,19 +424,9 @@
                 document.getElementById('modal-workouts').classList.add('hidden');
             });
 
-            // Builder de treinos
-            document.getElementById('btn-new-workout').addEventListener('click', () => {
-                openWorkoutBuilder();
-            });
-
-            document.getElementById('close-builder').addEventListener('click', () => {
-                document.getElementById('modal-workout-builder').classList.add('hidden');
-            });
-
-            document.getElementById('btn-cancel-builder').addEventListener('click', () => {
-                document.getElementById('modal-workout-builder').classList.add('hidden');
-            });
-
+            document.getElementById('btn-new-workout').addEventListener('click', () => openWorkoutBuilder());
+            document.getElementById('close-builder').addEventListener('click', () => document.getElementById('modal-workout-builder').classList.add('hidden'));
+            document.getElementById('btn-cancel-builder').addEventListener('click', () => document.getElementById('modal-workout-builder').classList.add('hidden'));
             document.getElementById('btn-save-workout').addEventListener('click', saveCurrentWorkout);
 
             document.getElementById('btn-pick-exercise').addEventListener('click', () => {
@@ -443,10 +434,7 @@
                 document.getElementById('modal-picker').classList.remove('hidden');
             });
 
-            document.getElementById('close-picker').addEventListener('click', () => {
-                document.getElementById('modal-picker').classList.add('hidden');
-            });
-
+            document.getElementById('close-picker').addEventListener('click', () => document.getElementById('modal-picker').classList.add('hidden'));
             document.getElementById('picker-search').addEventListener('input', renderPickerResults);
 
             document.getElementById('btn-add-to-workout-modal').addEventListener('click', () => {
@@ -455,6 +443,9 @@
                 if (!tempWorkoutExercises.some(ex => ex.id === currentSelectedExercise.id)) {
                     tempWorkoutExercises.push(currentSelectedExercise);
                     updateBuilderExercisesList();
+                    showToast(`"${currentSelectedExercise.name}" adicionado à ficha!`);
+                } else {
+                    showToast("Este exercício já está na ficha.", "info");
                 }
                 document.getElementById('modal-exercise').classList.add('hidden');
                 document.getElementById('modal-workout-builder').classList.remove('hidden');
@@ -471,25 +462,38 @@
                 const response = await fetch(APPS_SCRIPT_URL);
                 const data = await response.json();
                 
-                // Normaliza colunas vindas do Apps Script baseado na estrutura do usuário
-                allExercises = data.map((item, index) => ({
-                    id: item.ID || item.id || `ex_${index}`,
-                    name: item.Nome || item.name || "Exercício sem nome",
-                    group: item.Grupo_Muscular || item.grupo || item.category || "Geral",
-                    level: item.Nivel || item.nivel || "Iniciante",
-                    url: item.URL || item.url || "",
-                    instructions: item.Instrucoes || item.instrucoes || "Execute o movimento de forma controlada mantendo a postura correta.",
-                    warnings: item.Avisos || item.avisos || "Sempre consulte um profissional antes de iniciar."
-                }));
+                allExercises = data.map((item, index) => {
+                    let rawUrl = item.URL || item.url || "";
+                    let cleanUrl = rawUrl;
+                    
+                    // Transforma links do Google Drive para formato de exibição estável (lh3 ou uc export)
+                    if (rawUrl.includes("drive.google.com")) {
+                        let matchId = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || rawUrl.match(/id=([a-zA-Z0-9_-]+)/);
+                        if (matchId && matchId[1]) {
+                            cleanUrl = `https://lh3.googleusercontent.com/d/${matchId[1]}`;
+                        }
+                    }
+
+                    return {
+                        id: item.ID || item.id || `ex_${index}`,
+                        name: item.Nome || item.name || "Exercício sem nome",
+                        group: item.Grupo_Muscular || item.grupo || item.category || "Geral",
+                        level: item.Nivel || item.nivel || "Iniciante",
+                        url: cleanUrl,
+                        instructions: item.Instrucoes || item.instrucoes || "1. Posicione-se corretamente no aparelho ou colchonete.|2. Execute o movimento de forma controlada.|3. Retorne à posição inicial inspirando.",
+                        warnings: item.Avisos || item.avisos || "Mantenha a postura correta, abdômen contraído e evite movimentos bruscos."
+                    };
+                });
 
                 loading.style.display = 'none';
                 filterAndRenderExercises();
+                showToast(`${allExercises.length} exercícios carregados com sucesso!`);
             } catch (error) {
                 console.error("Erro ao buscar dados do Apps Script:", error);
                 loading.innerHTML = `
                     <div class="text-center space-y-3">
                         <i class="fa-solid fa-triangle-exclamation text-3xl text-amber-500"></i>
-                        <p class="text-slate-300 text-sm">Não foi possível carregar direto da API online.</p>
+                        <p class="text-slate-300 text-sm">Não foi possível carregar os 603 exercícios online.</p>
                         <button onclick="fetchExercises()" class="px-4 py-2 bg-brand-500 text-white rounded-xl text-xs font-medium">Tentar Novamente</button>
                     </div>
                 `;
@@ -530,7 +534,7 @@
                 
                 card.innerHTML = `
                     <div class="h-48 bg-slate-950 relative overflow-hidden flex items-center justify-center p-2">
-                        <img src="${ex.url}" alt="${ex.name}" loading="lazy" class="h-full w-full object-contain group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://placehold.co/300x200/1e293b/f97316?text=GIF'">
+                        <img src="${ex.url}" alt="${ex.name}" loading="lazy" class="h-full w-full object-contain group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://placehold.co/300x200/1e293b/f97316?text=GIF+Indisponivel'">
                         <span class="absolute top-3 right-3 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-900/80 backdrop-blur-md text-slate-300 border border-slate-700">${ex.level}</span>
                     </div>
                     <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
@@ -539,7 +543,7 @@
                             <h3 class="font-bold text-white text-sm line-clamp-1 group-hover:text-brand-400 transition-colors">${ex.name}</h3>
                         </div>
                         <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
-                            <span class="flex items-center gap-1 text-slate-300"><i class="fa-solid fa-circle-play text-brand-500"></i> Ver Execução</span>
+                            <span class="flex items-center gap-1 text-slate-300"><i class="fa-solid fa-circle-play text-brand-500"></i> Ver Execução & Carga</span>
                             <i class="fa-solid fa-chevron-right text-[10px]"></i>
                         </div>
                     </div>
@@ -557,15 +561,36 @@
             document.getElementById('modal-tag-level').textContent = ex.level;
             document.getElementById('modal-gif-img').src = ex.url;
 
-            // Formata instruções separadas por pipe ou ponto se houver
+            document.getElementById('sug-user-level').textContent = userData.level;
+            
+            // Sugestão de carga inteligente baseada no nível e objetivo do usuário
+            let recText = "3 a 4 séries | 8 a 12 repetições | Descanso: 60s a 90s";
+            if (userData.level === 'Iniciante') {
+                recText = "2 a 3 séries | 10 a 15 repetições (Carga leve/moderada) | Descanso: 60s";
+            } else if (userData.level === 'Avançado') {
+                recText = "4 a 5 séries | 6 a 10 repetições (Carga alta / Falha técnica) | Descanso: 90s a 2min";
+            }
+            if (userData.goal === 'Emagrecimento') {
+                recText += " | Ritmo dinâmico / Menor intervalo (45s)";
+            }
+            document.getElementById('modal-suggestion-text').textContent = recText;
+
+            // Formata instruções separadas por pipe (|) ou ponto final
             const instContainer = document.getElementById('modal-instructions');
             instContainer.innerHTML = '';
-            const instSteps = ex.instructions.split('|');
-            instSteps.forEach((step, idx) => {
+            
+            let steps = [];
+            if (ex.instructions.includes('|')) {
+                steps = ex.instructions.split('|');
+            } else {
+                steps = ex.instructions.split('.').filter(s => s.trim().length > 0);
+            }
+
+            steps.forEach((step, idx) => {
                 if (step.trim()) {
                     const p = document.createElement('div');
                     p.className = "flex items-start gap-2.5";
-                    p.innerHTML = `<span class="flex-shrink-0 w-5 h-5 rounded-full bg-brand-500/20 text-brand-400 font-bold text-xs flex items-center justify-center border border-brand-500/30">${idx + 1}</span><span>${step.trim()}</span>`;
+                    p.innerHTML = `<span class="flex-shrink-0 w-5 h-5 rounded-full bg-brand-500/20 text-brand-400 font-bold text-xs flex items-center justify-center border border-brand-500/30">${idx + 1}</span><span>${step.trim()}${step.trim().endsWith('.') ? '' : '.'}</span>`;
                     instContainer.appendChild(p);
                 }
             });
@@ -599,7 +624,7 @@
             container.innerHTML = '';
 
             if (tempWorkoutExercises.length === 0) {
-                container.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">Nenhum exercício adicionado ainda.</p>`;
+                container.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">Nenhum exercício adicionado ainda na ficha.</p>`;
                 return;
             }
 
@@ -632,9 +657,9 @@
 
             const filtered = allExercises.filter(ex => ex.name.toLowerCase().includes(search) || ex.group.toLowerCase().includes(search));
 
-            filtered.forEach(ex => {
+            filtered.slice(0, 50).forEach(ex => {
                 const item = document.createElement('div');
-                item.className = "flex items-center justify-between p-2.5 bg-slate-800 hover:bg-slate-700/80 border border-slate-700/80 rounded-xl cursor-pointer transition";
+                item.className = "flex items-center justify-between p-2.5 bg-slate-800 hover:bg-slate-700/85 border border-slate-700/80 rounded-xl cursor-pointer transition";
                 item.innerHTML = `
                     <div class="flex items-center gap-3">
                         <img src="${ex.url}" class="w-10 h-10 object-contain rounded-lg bg-slate-900 p-1" onerror="this.src='https://placehold.co/40x40/1e293b/f97316?text=GIF'">
@@ -649,7 +674,7 @@
                     if (!tempWorkoutExercises.some(item => item.id === ex.id)) {
                         tempWorkoutExercises.push(ex);
                         updateBuilderExercisesList();
-                        showToast(`Exercício "${ex.name}" adicionado!`);
+                        showToast(`"${ex.name}" adicionado!`);
                     } else {
                         showToast("Este exercício já está na ficha.", "info");
                     }
@@ -682,7 +707,7 @@
                     createdAt: new Date().toLocaleDateString('pt-BR')
                 };
                 workouts.push(newWorkout);
-                showToast("Novo treino criado com sucesso!");
+                showToast("Novo treino salvo no aparelho!");
             }
 
             localStorage.setItem('scanfit_workouts', JSON.stringify(workouts));
@@ -700,7 +725,7 @@
                 container.innerHTML = `
                     <div class="text-center py-12 space-y-3">
                         <i class="fa-solid fa-clipboard-list text-4xl text-slate-600"></i>
-                        <p class="text-slate-400 text-sm">Você ainda não salvou nenhum treino no seu aparelho.</p>
+                        <p class="text-slate-400 text-sm">Nenhum treino salvo no seu aparelho ainda.</p>
                     </div>
                 `;
                 return;
