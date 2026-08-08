@@ -2,9 +2,9 @@
 <html lang="pt-BR" class="antialiased">
 <head>
     <meta charset="UTF-8">
+    <meta name="theme-color" content="#0a0a0a">
+    <meta name="description" content="ScanFit: execução correta de exercícios com apoio visual.">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="referrer" content="strict-origin-when-cross-origin">
-    <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <title>ScanFit - Seu Movimento com Precisão</title>
     
     <!-- Fontes e Ícones -->
@@ -25,11 +25,13 @@
                     },
                     animation: {
                         'fade-in': 'fadeIn 0.3s ease-out forwards',
-                        'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'pop-in': 'popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
-                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }
+                        slideUp: { '0%': { transform: 'translateY(100%)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+                        popIn: { '0%': { transform: 'scale(0.9)', opacity: '0' }, '100%': { transform: 'scale(1)', opacity: '1' } }
                     }
                 }
             }
@@ -37,11 +39,14 @@
     </script>
 
     <style>
-        /* Ocultar barra de rolagem mas permitir rolagem */
+        /* Otimizações de GPU e Scroll */
         ::-webkit-scrollbar { display: none; }
-        * { -ms-overflow-style: none; scrollbar-width: none; }
+        * { 
+            -ms-overflow-style: none; scrollbar-width: none; 
+            -webkit-tap-highlight-color: transparent;
+        }
         
-        /* Prevenir cópia e seleção de texto */
+        /* Barreira Anti-Cópia */
         body {
             -webkit-touch-callout: none;
             -webkit-user-select: none;
@@ -52,10 +57,9 @@
             background-color: #000;
         }
 
-        /* Container que simula um app mobile no desktop */
         .app-container {
             width: 100%;
-            max-width: 430px; /* Tamanho do iPhone Pro Max */
+            max-width: 430px;
             margin: 0 auto;
             background-color: #0a0a0a;
             min-height: 100vh;
@@ -70,23 +74,40 @@
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border-top: 1px solid rgba(255,255,255,0.05);
+            transform: translateZ(0); /* Força Aceleração GPU */
         }
 
-        /* Imagem placeholder para videos faltantes */
-        .media-placeholder {
-            background: linear-gradient(45deg, #161616, #222);
+        .view-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            background-color: #0a0a0a;
+            will-change: transform, opacity;
         }
+        
+        .view-layer.active {
+            display: flex;
+            animation: fadeIn 0.2s ease-out forwards;
+        }
+
+        /* Bloqueia arrastar imagens */
+        img { pointer-events: none; }
     </style>
 </head>
+
+<!-- Proteção de Clique Direito -->
 <body class="text-white h-screen overflow-hidden" oncontextmenu="return false;">
 
-    <div class="app-container flex flex-col relative">
+    <div class="app-container relative">
 
         <!-- ==========================================
              TELA 1: LANDING PAGE (CAPA)
              ========================================== -->
-        <div id="view-landing" class="flex flex-col h-full relative animate-fade-in z-10">
-            <!-- Background Image Escurecida -->
+        <div id="view-landing" class="view-layer active z-10">
             <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=800')] bg-cover bg-center opacity-40 mix-blend-luminosity"></div>
             <div class="absolute inset-0 bg-gradient-to-t from-scanfit-dark via-scanfit-dark/80 to-transparent"></div>
             
@@ -95,7 +116,7 @@
                 <h1 class="text-3xl font-extrabold tracking-tight mb-2">Seu movimento com <span class="text-scanfit-green">precisão.</span></h1>
                 <p class="text-gray-400 text-sm mb-10 max-w-[280px]">Escaneie, assista a execução correta e evolua com consistência.</p>
                 
-                <button onclick="navigate('library')" class="w-full bg-scanfit-green text-black font-bold text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(143,227,2,0.4)] transition-transform active:scale-95 flex items-center justify-center gap-3">
+                <button onclick="navigate('library')" class="w-full bg-scanfit-green text-black font-bold text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(143,227,2,0.4)] active:scale-95 transition-transform flex items-center justify-center gap-3">
                     <i class="fa-solid fa-dumbbell"></i> Acessar Exercícios
                 </button>
             </div>
@@ -104,7 +125,7 @@
         <!-- ==========================================
              TELA 2: BIBLIOTECA (EXPLORAR)
              ========================================== -->
-        <div id="view-library" class="hidden flex-col h-full bg-scanfit-dark pt-6 pb-20 relative animate-fade-in">
+        <div id="view-library" class="view-layer pt-6 pb-20">
             <div class="px-5 mb-4">
                 <h2 class="text-2xl font-extrabold mb-1">Explorar</h2>
                 <p class="text-xs text-gray-400">Encontre o exercício perfeito</p>
@@ -117,57 +138,85 @@
             </div>
 
             <!-- Chips de Categorias -->
-            <div class="px-5 mb-4 overflow-x-auto no-scrollbar flex gap-2 pb-1">
-                <button onclick="setCategory('Todos')" class="category-chip active flex-shrink-0 bg-scanfit-green text-black px-4 py-1.5 rounded-full text-xs font-bold transition-colors">Todos</button>
-                <button onclick="setCategory('Peito')" class="category-chip flex-shrink-0 bg-scanfit-card text-gray-400 border border-gray-800 px-4 py-1.5 rounded-full text-xs font-semibold hover:text-white transition-colors">Peito</button>
-                <button onclick="setCategory('Costas')" class="category-chip flex-shrink-0 bg-scanfit-card text-gray-400 border border-gray-800 px-4 py-1.5 rounded-full text-xs font-semibold hover:text-white transition-colors">Costas</button>
-                <button onclick="setCategory('Pernas')" class="category-chip flex-shrink-0 bg-scanfit-card text-gray-400 border border-gray-800 px-4 py-1.5 rounded-full text-xs font-semibold hover:text-white transition-colors">Pernas</button>
-                <button onclick="setCategory('Ombros')" class="category-chip flex-shrink-0 bg-scanfit-card text-gray-400 border border-gray-800 px-4 py-1.5 rounded-full text-xs font-semibold hover:text-white transition-colors">Ombros</button>
-                <button onclick="setCategory('Braços')" class="category-chip flex-shrink-0 bg-scanfit-card text-gray-400 border border-gray-800 px-4 py-1.5 rounded-full text-xs font-semibold hover:text-white transition-colors">Braços</button>
+            <div class="px-5 mb-4 overflow-x-auto no-scrollbar flex gap-2 pb-1" id="category-container">
+                <!-- Injetado via JS -->
             </div>
 
             <!-- Lista de Exercícios -->
-            <div class="flex-1 overflow-y-auto px-5">
+            <div class="flex-1 overflow-y-auto px-5 relative">
                 <div id="lista-exercicios" class="space-y-3 pb-6">
-                    <!-- Preenchido via JS -->
-                    <div class="flex justify-center items-center h-20">
+                    <div class="flex flex-col justify-center items-center h-40 text-gray-500 gap-3">
                         <i class="fa-solid fa-circle-notch fa-spin text-scanfit-green text-2xl"></i>
+                        <span class="text-xs font-bold uppercase tracking-wider">Carregando base...</span>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- ==========================================
-             TELA 3: MEU TREINO (SALVO NO DISPOSITIVO)
+             TELA 3: MEUS TREINOS (FICHAS)
              ========================================== -->
-        <div id="view-workout" class="hidden flex-col h-full bg-scanfit-dark pt-6 pb-20 relative animate-fade-in">
-            <div class="px-5 mb-6 flex justify-between items-center">
-                <div>
-                    <h2 class="text-2xl font-extrabold mb-1">Meu Treino</h2>
-                    <p class="text-xs text-gray-400">Salvo no seu celular</p>
+        <div id="view-workout" class="view-layer pt-6 pb-20">
+            
+            <!-- Visão 1: Lista de Fichas de Treino -->
+            <div id="workout-list-view" class="flex flex-col h-full">
+                <div class="px-5 mb-6 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-extrabold mb-1">Meus Treinos</h2>
+                        <p class="text-xs text-gray-400">Suas fichas salvas</p>
+                    </div>
+                    <button onclick="criarNovoTreino()" class="bg-scanfit-green text-black px-3 py-1.5 rounded-lg text-xs font-bold shadow-md active:scale-95 transition-transform flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i> Novo
+                    </button>
                 </div>
-                <button onclick="limparTreino()" class="text-red-500 bg-red-500/10 px-3 py-1.5 rounded-lg text-xs font-bold border border-red-500/20 active:scale-95 transition-transform">
-                    <i class="fa-solid fa-trash mr-1"></i> Limpar
-                </button>
+
+                <div class="flex-1 overflow-y-auto px-5">
+                    <div id="container-fichas" class="space-y-3 pb-6">
+                        <!-- Preenchido via JS -->
+                    </div>
+                    
+                    <div id="workout-empty" class="hidden flex-col items-center justify-center text-center mt-20 opacity-50">
+                        <i class="fa-regular fa-folder-open text-4xl mb-3 text-gray-500"></i>
+                        <p class="text-sm text-gray-400 max-w-[200px]">Nenhuma ficha criada. Crie um novo treino para começar.</p>
+                    </div>
+                </div>
             </div>
 
-            <div class="flex-1 overflow-y-auto px-5">
-                <div id="lista-treino" class="space-y-3 pb-6">
-                    <!-- Preenchido via JS -->
+            <!-- Visão 2: Dentro de um Treino Específico -->
+            <div id="workout-detail-view" class="hidden flex-col h-full bg-scanfit-card absolute inset-0 z-30">
+                <div class="px-5 pt-6 pb-4 border-b border-gray-800 bg-scanfit-dark flex items-center justify-between sticky top-0 z-10">
+                    <div class="flex items-center gap-3">
+                        <button onclick="fecharDetalheTreino()" class="w-8 h-8 rounded-full bg-scanfit-card flex items-center justify-center text-gray-400 active:scale-95">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <h2 id="detalhe-treino-nome" class="text-lg font-bold text-white truncate max-w-[200px]">Treino A</h2>
+                    </div>
+                    <button onclick="excluirTreinoAtual()" class="text-red-500 text-sm w-8 h-8 flex items-center justify-center active:scale-95">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto px-5 pt-4">
+                    <div id="detalhe-treino-lista" class="space-y-3 pb-24">
+                        <!-- Preenchido via JS -->
+                    </div>
+                    <div id="detalhe-empty" class="hidden text-center mt-10 text-gray-500 text-sm">
+                        Ficha vazia. Adicione exercícios navegando pela biblioteca.
+                    </div>
                 </div>
                 
-                <!-- Estado Vazio -->
-                <div id="workout-empty" class="hidden flex-col items-center justify-center text-center mt-20 opacity-50">
-                    <i class="fa-regular fa-folder-open text-4xl mb-3 text-gray-500"></i>
-                    <p class="text-sm text-gray-400 max-w-[200px]">Seu treino está vazio. Adicione exercícios navegando pela biblioteca.</p>
+                <div class="absolute bottom-6 w-full px-5">
+                    <button onclick="navigate('library')" class="w-full bg-scanfit-green text-black font-bold py-3 rounded-xl shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Adicionar Exercício
+                    </button>
                 </div>
             </div>
         </div>
 
         <!-- ==========================================
-             TELA 4: PERFIL E IMC
+             TELA 4: PERFIL E IMC + AVISO LEGAL
              ========================================== -->
-        <div id="view-profile" class="hidden flex-col h-full bg-scanfit-dark pt-6 pb-20 relative animate-fade-in overflow-y-auto">
+        <div id="view-profile" class="view-layer pt-6 pb-20 overflow-y-auto">
             <div class="px-5 mb-6 flex justify-between items-center">
                 <div>
                     <h2 class="text-2xl font-extrabold text-white">Meu Perfil</h2>
@@ -180,7 +229,6 @@
 
             <div class="px-5 space-y-4">
                 <div class="bg-scanfit-card p-5 rounded-2xl border border-gray-800 space-y-4 shadow-sm">
-                    <!-- Dados Pessoais -->
                     <div>
                         <label class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1 block">Seu Nome</label>
                         <input type="text" id="prof-nome" placeholder="Como quer ser chamado?" class="w-full bg-black border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:border-scanfit-green focus:outline-none transition-colors">
@@ -241,19 +289,23 @@
                         <div class="w-[20%] h-full bg-yellow-500"></div>
                         <div class="w-[30%] h-full bg-red-500"></div>
                     </div>
-                    <div class="flex justify-between text-[8px] text-gray-500 uppercase font-bold mt-1">
-                        <span>Abaixo</span>
-                        <span>Normal</span>
-                        <span>Sobre</span>
-                        <span>Obesidade</span>
-                    </div>
                 </div>
             </div>
 
-            <!-- Botão Secreto para Configuração do Admin -->
-            <div class="mt-8 text-center pb-6">
-                <button onclick="navigate('admin')" class="text-[10px] text-gray-700 font-bold uppercase tracking-widest hover:text-gray-500 transition-colors">
-                    <i class="fa-solid fa-lock mr-1"></i> Acesso Restrito
+            <!-- Termo de Responsabilidade (Legal Disclaimer) -->
+            <div class="mt-8 px-6 text-center">
+                <hr class="border-gray-800/50 mb-4">
+                <p class="text-[9px] text-gray-500 leading-relaxed font-medium">
+                    <i class="fa-solid fa-shield-heart text-gray-600 mb-1 block text-lg"></i>
+                    O aplicativo ScanFit tem caráter informativo e de auxílio visual. Ele <strong class="text-gray-400">não substitui a orientação de um profissional de Educação Física</strong>. Sempre consulte um especialista antes de iniciar novos exercícios. Respeite seus limites.
+                </p>
+                <p class="text-[8px] text-gray-600 mt-4">&copy; 2026 ScanFit - Todos os direitos reservados.</p>
+            </div>
+
+            <!-- Botão Admin -->
+            <div class="mt-6 text-center pb-6">
+                <button onclick="navigate('admin')" class="text-[10px] text-gray-800 font-bold uppercase tracking-widest hover:text-gray-500 transition-colors">
+                    <i class="fa-solid fa-lock mr-1"></i> Area Restrita
                 </button>
             </div>
         </div>
@@ -261,27 +313,23 @@
         <!-- ==========================================
              TELA 5: VISUALIZAÇÃO DO EXERCÍCIO
              ========================================== -->
-        <div id="view-exercise" class="hidden flex-col h-full bg-scanfit-dark absolute inset-0 z-40 animate-slide-up">
+        <div id="view-exercise" class="view-layer absolute inset-0 z-40 bg-scanfit-dark" style="animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
             
-            <!-- Botão Voltar Fixo e Transparente -->
-            <button onclick="voltar()" class="absolute top-4 left-4 z-50 w-10 h-10 bg-black/50 backdrop-blur border border-white/10 rounded-full flex items-center justify-center text-white active:scale-90 transition-transform">
+            <button onclick="voltar()" class="absolute top-4 left-4 z-50 w-10 h-10 bg-black/50 backdrop-blur border border-white/10 rounded-full flex items-center justify-center text-white active:scale-90 transition-transform shadow-lg">
                 <i class="fa-solid fa-chevron-left pr-1"></i>
             </button>
 
-            <!-- Área de Mídia (Vídeo/GIF) -->
             <div class="relative w-full h-[35%] bg-black flex items-center justify-center border-b border-gray-800">
-                <div id="media-container" class="absolute inset-0 w-full h-full media-placeholder flex items-center justify-center">
+                <div id="media-container" class="absolute inset-0 w-full h-full bg-scanfit-card flex items-center justify-center overflow-hidden">
                     <i class="fa-solid fa-circle-notch fa-spin text-scanfit-green text-3xl"></i>
                 </div>
                 
-                <!-- Badge Watermark -->
-                <div class="absolute top-4 right-4 bg-black/60 backdrop-blur px-3 py-1 rounded-full border border-white/10 flex items-center gap-1.5 shadow-lg">
+                <div class="absolute top-4 right-4 bg-black/60 backdrop-blur px-3 py-1 rounded-full border border-white/10 flex items-center gap-1.5 shadow-lg z-20">
                     <i class="fa-solid fa-shield-halved text-scanfit-green text-[10px]"></i>
                     <span class="text-[9px] font-bold tracking-wider text-white">SCANFIT</span>
                 </div>
             </div>
 
-            <!-- Conteúdo do Exercício -->
             <div class="flex-1 overflow-y-auto px-5 pt-5 pb-24 relative z-10 bg-scanfit-dark -mt-4 rounded-t-3xl shadow-[0_-10px_20px_rgba(0,0,0,0.5)]">
                 
                 <div class="flex gap-2 flex-wrap mb-3">
@@ -290,22 +338,18 @@
 
                 <div class="flex justify-between items-start gap-2 mb-6">
                     <h2 id="ex-nome" class="text-2xl font-extrabold text-white leading-tight"></h2>
-                    <button id="btn-add-workout" onclick="toggleTreinoAtual()" class="flex-shrink-0 w-10 h-10 rounded-xl bg-scanfit-card border border-gray-800 text-gray-400 flex items-center justify-center shadow-sm active:scale-90 transition-all">
+                    <button onclick="abrirModalAdicionarFicha()" class="flex-shrink-0 w-10 h-10 rounded-xl bg-scanfit-card border border-gray-800 text-gray-400 flex items-center justify-center shadow-sm active:scale-90 transition-all">
                         <i class="fa-solid fa-plus text-lg"></i>
                     </button>
                 </div>
 
-                <!-- Execução -->
                 <div class="space-y-4 mb-6">
                     <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                         <i class="fa-solid fa-bullseye text-scanfit-green"></i> Execução Correta
                     </h3>
-                    <ul id="ex-instrucoes" class="space-y-3">
-                        <!-- Injetado via JS -->
-                    </ul>
+                    <ul id="ex-instrucoes" class="space-y-3"></ul>
                 </div>
 
-                <!-- Dicas Importantes (Opcional) -->
                 <div id="ex-tips-container" class="hidden">
                     <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
                         <h4 class="text-[10px] font-bold text-yellow-500 mb-2 uppercase tracking-wider flex items-center gap-1.5">
@@ -316,53 +360,65 @@
                 </div>
             </div>
 
-            <!-- Botão Flutuante Inferior para alternar Mídia -->
+            <!-- Botões de Mídia -->
             <div class="absolute bottom-6 left-0 w-full px-5 z-50">
                 <div class="bg-scanfit-card/90 backdrop-blur-md border border-gray-800 rounded-2xl p-1.5 flex shadow-2xl">
                     <button id="btn-video" onclick="alternarMidia('video')" class="flex-1 py-3 rounded-xl text-sm font-bold bg-scanfit-green text-black transition-all shadow-md">
                         <i class="fa-brands fa-youtube mr-1"></i> Vídeo
                     </button>
                     <button id="btn-gif" onclick="alternarMidia('gif')" class="flex-1 py-3 rounded-xl text-sm font-bold text-gray-400 hover:text-white transition-all">
-                        <i class="fa-solid fa-bolt mr-1"></i> GIF Rápido
+                        <i class="fa-solid fa-bolt mr-1"></i> GIF
                     </button>
                 </div>
             </div>
         </div>
 
         <!-- ==========================================
-             TELA 6: ADMIN (PROTEGIDA POR SENHA)
+             MODAL: ESCOLHER FICHA DE TREINO
              ========================================== -->
-        <div id="view-admin" class="hidden flex-col h-full bg-scanfit-dark pt-6 pb-20 relative animate-fade-in z-30">
+        <div id="modal-escolher-ficha" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden flex-col justify-end">
+            <div class="bg-scanfit-card w-full rounded-t-3xl border-t border-gray-800 p-6 animate-slide-up">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-white">Adicionar à Ficha</h3>
+                    <button onclick="fecharModalFicha()" class="text-gray-500 text-2xl active:scale-90">&times;</button>
+                </div>
+                
+                <div id="lista-fichas-modal" class="space-y-2 max-h-[40vh] overflow-y-auto mb-4">
+                    <!-- Fichas injetadas via JS -->
+                </div>
+                
+                <button onclick="criarNovoTreino(true)" class="w-full bg-transparent border border-scanfit-green text-scanfit-green font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Criar Nova Ficha
+                </button>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             TELA 6: ADMIN
+             ========================================== -->
+        <div id="view-admin" class="view-layer pt-6 pb-20 z-30">
             <div class="px-5 mb-6 flex items-center gap-3">
-                <button onclick="navigate('profile')" class="w-8 h-8 bg-scanfit-card rounded-full flex items-center justify-center text-gray-400">
+                <button onclick="navigate('profile')" class="w-8 h-8 bg-scanfit-card rounded-full flex items-center justify-center text-gray-400 active:scale-95">
                     <i class="fa-solid fa-chevron-left"></i>
                 </button>
-                <h2 class="text-xl font-extrabold text-white">Configurações do Sistema</h2>
+                <h2 class="text-xl font-extrabold text-white">Administração</h2>
             </div>
 
-            <!-- Camada de Autenticação -->
             <div id="admin-auth" class="px-5 flex flex-col items-center justify-center mt-10">
                 <div class="w-16 h-16 bg-scanfit-card rounded-2xl flex items-center justify-center border border-gray-800 mb-4 shadow-lg">
                     <i class="fa-solid fa-lock text-scanfit-green text-2xl"></i>
                 </div>
                 <h3 class="font-bold mb-4">Acesso Restrito</h3>
-                <input type="password" id="admin-password" placeholder="Digite a senha" class="w-full bg-black border border-gray-700 rounded-xl px-4 py-3 text-sm text-center text-white mb-4 focus:border-scanfit-green outline-none">
-                <button onclick="checkAdminPassword()" class="w-full bg-scanfit-green text-black font-bold py-3 rounded-xl shadow-lg">Entrar</button>
+                <input type="password" id="admin-password" placeholder="Senha do Sistema" class="w-full bg-black border border-gray-700 rounded-xl px-4 py-3 text-sm text-center text-white mb-4 focus:border-scanfit-green outline-none">
+                <button onclick="checkAdminPassword()" class="w-full bg-scanfit-green text-black font-bold py-3 rounded-xl shadow-lg active:scale-95">Entrar</button>
             </div>
 
-            <!-- Painel Administrativo -->
             <div id="admin-panel" class="hidden px-5 space-y-6">
                 <div class="bg-scanfit-card p-5 rounded-2xl border border-gray-800 shadow-sm">
                     <h3 class="text-sm font-bold mb-2 flex items-center gap-2"><i class="fa-solid fa-database text-scanfit-green"></i> Conexão Google Sheets</h3>
-                    <p class="text-[10px] text-gray-400 mb-4">Insira o link completo da sua planilha. O sistema usará a API do Google para baixar os exercícios.</p>
-                    <p class="text-[9px] text-yellow-500/80 mb-3">A proteção do painel é local. Para segurança real, use autenticação em um backend.</p>
-                    <input type="text" id="admin-url" placeholder="Cole a URL do Google Sheets aqui..." class="w-full bg-black border border-gray-700 rounded-xl px-3 py-3 text-xs text-white mb-3 outline-none">
-                    <button onclick="salvarURLPlanilha()" class="w-full bg-scanfit-green text-black text-sm font-bold py-2.5 rounded-lg active:scale-95">Salvar e Sincronizar</button>
-                </div>
-                
-                <div class="bg-scanfit-card p-4 rounded-xl border border-gray-800 flex justify-between items-center">
-                    <span class="text-xs font-semibold text-gray-400">Status do Banco Local:</span>
-                    <span id="admin-db-status" class="text-xs font-bold text-scanfit-green bg-scanfit-green/10 px-2 py-1 rounded">0 exercícios</span>
+                    <p class="text-[10px] text-gray-400 mb-4">A planilha precisa estar "Publicada na Web" como CSV.</p>
+                    <input type="text" id="admin-url" placeholder="Link da Planilha..." class="w-full bg-black border border-gray-700 rounded-xl px-3 py-3 text-xs text-white mb-3 outline-none">
+                    <button onclick="salvarURLPlanilha()" class="w-full bg-scanfit-green text-black text-sm font-bold py-2.5 rounded-lg active:scale-95">Forçar Sincronização</button>
                 </div>
             </div>
         </div>
@@ -371,21 +427,19 @@
              BOTTOM NAVIGATION BAR
              ========================================== -->
         <nav id="bottom-nav" class="glass-nav absolute bottom-0 w-full z-20 flex justify-around items-center px-2 py-2 h-[72px] pb-5">
-            <button onclick="navigate('landing')" class="nav-btn flex flex-col items-center gap-1 w-1/4 text-scanfit-green" data-target="landing">
+            <button onclick="navigate('landing')" class="nav-btn flex flex-col items-center gap-1 w-1/4 text-scanfit-green transition-colors" data-target="landing">
                 <i class="fa-solid fa-compass text-[20px]"></i>
                 <span class="text-[9px] font-bold tracking-wide mt-0.5">Início</span>
             </button>
-            <button onclick="navigate('library')" class="nav-btn flex flex-col items-center gap-1 w-1/4 text-gray-500 hover:text-white transition-colors" data-target="library">
+            <button onclick="navigate('library')" class="nav-btn flex flex-col items-center gap-1 w-1/4 text-gray-500 transition-colors" data-target="library">
                 <i class="fa-solid fa-layer-group text-[20px]"></i>
                 <span class="text-[9px] font-bold tracking-wide mt-0.5">Explorar</span>
             </button>
-            <button onclick="navigate('workout')" class="nav-btn flex flex-col items-center gap-1 w-1/4 text-gray-500 hover:text-white transition-colors relative" data-target="workout">
+            <button onclick="navigate('workout')" class="nav-btn flex flex-col items-center gap-1 w-1/4 text-gray-500 transition-colors relative" data-target="workout">
                 <i class="fa-solid fa-clipboard-list text-[20px]"></i>
                 <span class="text-[9px] font-bold tracking-wide mt-0.5">Treino</span>
-                <!-- Badge -->
-                <span id="badge-treino" class="absolute top-0 right-3 bg-scanfit-green text-black text-[9px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center scale-0 transition-transform duration-300">0</span>
             </button>
-            <button onclick="navigate('profile')" class="nav-btn flex flex-col items-center gap-1 w-1/4 text-gray-500 hover:text-white transition-colors" data-target="profile">
+            <button onclick="navigate('profile')" class="nav-btn flex flex-col items-center gap-1 w-1/4 text-gray-500 transition-colors" data-target="profile">
                 <i class="fa-solid fa-user text-[20px]"></i>
                 <span class="text-[9px] font-bold tracking-wide mt-0.5">Perfil</span>
             </button>
@@ -402,314 +456,323 @@
     <!-- SCRIPTS -->
     <script>
         /* ==========================================
-           VARIÁVEIS GLOBAIS E ESTADO
+           1. ESTADO GLOBAL E CONFIGURAÇÕES
            ========================================== */
-        let dbExercicios = [];
-        let treinoSalvo = safeJSONParse(localStorage.getItem('scanfit_treino'), []);
-        let perfilDados = safeJSONParse(localStorage.getItem('scanfit_perfil'), {});
+        // Link configurado via Gviz para garantir leitura robusta do Sheets
+        const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/1c9-_V_6F6ANWPHu5Xvheg-psEPEPVB_4FVy7riPXqtI/gviz/tq?tqx=out:json&gid=390283479";
+        
+        // Exercício padrão (Fallback) para o app nunca ficar em branco
+        let dbExercicios = [{
+            id: 'supino-reto',
+            nome: 'Supino Reto (Exemplo)',
+            grupo: 'Peito',
+            video: '',
+            gif: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=800',
+            execucao: 'Deite-se no banco com as costas apoiadas;Pegue a barra na largura dos ombros;Desça controlando até o peito;Empurre a barra para cima',
+            dicas: 'Mantenha os pés firmes no chão;Não arque as costas;Controle o movimento'
+        }];
+        let categorias = new Set(['Todos', 'Peito']);
+        
+        // Novo Sistema de Fichas de Treino
+        // Estrutura: [{ id: 't1', nome: 'Treino A', exercicios: [{id: 'supino-reto', nome: 'Supino', grupo: 'Peito'}] }]
+        const safeJSONParse = (key, fallback) => {
+            try {
+                const raw = localStorage.getItem(key);
+                if (!raw) return fallback;
+                const parsed = JSON.parse(raw);
+                return parsed ?? fallback;
+            } catch (error) {
+                console.warn(`ScanFit: dados locais inválidos em ${key}.`, error);
+                try { localStorage.removeItem(key); } catch (_) {}
+                return fallback;
+            }
+        };
+
+        const safeStorageSet = (key, value) => {
+            try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+            catch (error) { console.warn(`ScanFit: não foi possível salvar ${key}.`, error); return false; }
+        };
+
+        let meusTreinos = safeJSONParse('scanfit_treinos', []);
+        if (!Array.isArray(meusTreinos)) meusTreinos = [];
+        let treinoDetalheAtivo = null; // ID da ficha que está aberta no momento
+
+        let perfilDados = safeJSONParse('scanfit_perfil', {});
+        if (!perfilDados || typeof perfilDados !== 'object' || Array.isArray(perfilDados)) perfilDados = {};
         let exercicioAtual = null;
         let currentMediaType = 'video';
         let currentCategory = 'Todos';
         let currentView = 'landing';
         let debounceTimer;
+
+        // Anti-Cópia Avançado
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) || (e.ctrlKey && e.key === 'U')) {
+                e.preventDefault();
+            }
+        });
+
+        /* ==========================================
+           UTILITÁRIOS DE SEGURANÇA E ROBUSTEZ
+           ========================================== */
+        const ADMIN_PASSWORD_HASH = '529eb27ca3919494a1cf60ecd3672e37e71f2e33674e179bbcae1bf8573ddf07';
         let adminAttempts = 0;
         let adminLockedUntil = 0;
 
-        // Proteções para um aplicativo 100% client-side.
-        // IMPORTANTE: sem backend, a autenticação do painel não é uma barreira de segurança real.
-        const ADMIN_PASSWORD_HASH = '529eb27ca3919494a1cf60ecd3672e37e71f2e33674e179bbcae1bf8573ddf07';
+        function textoSeguro(value, fallback = '') {
+            if (value === null || value === undefined) return fallback;
+            return String(value).trim();
+        }
 
-        function safeJSONParse(value, fallback) {
-            if (!value) return fallback;
+        function normalizarId(value) {
+            return textoSeguro(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase().replace(/[^a-z0-9_-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 100);
+        }
+
+        function normalizarExercicios(lista) {
+            if (!Array.isArray(lista)) return [];
+            return lista.map(item => {
+                const nome = textoSeguro(item?.nome);
+                const id = normalizarId(item?.id || nome);
+                if (!nome || !id) return null;
+                return {
+                    id,
+                    nome: nome.slice(0, 150),
+                    grupo: textoSeguro(item?.grupo, 'Geral').slice(0, 80),
+                    video: textoSeguro(item?.video),
+                    gif: textoSeguro(item?.gif),
+                    execucao: textoSeguro(item?.execucao),
+                    dicas: textoSeguro(item?.dicas)
+                };
+            }).filter(Boolean);
+        }
+
+        function escapeHTML(value) {
+            return textoSeguro(value).replace(/[&<>\"']/g, char => ({
+                '&':'&amp;', '<':'&lt;', '>':'&gt;', '\"':'&quot;', "'":'&#039;'
+            }[char]));
+        }
+
+        function escapeAttr(value) {
+            return escapeHTML(value).replace(/`/g, '&#096;');
+        }
+
+        function isSafeHttpUrl(value) {
             try {
-                const parsed = JSON.parse(value);
-                return parsed ?? fallback;
-            } catch (error) {
-                console.warn('ScanFit: armazenamento local inválido, usando padrão.', error);
-                return fallback;
-            }
+                const url = new URL(value, window.location.href);
+                return url.protocol === 'https:' || (url.protocol === 'http:' && ['localhost','127.0.0.1'].includes(url.hostname));
+            } catch (_) { return false; }
         }
 
-        function saveLocalJSON(key, value) {
-            try {
-                localStorage.setItem(key, JSON.stringify(value));
-                return true;
-            } catch (error) {
-                console.error('ScanFit: não foi possível salvar no armazenamento local.', error);
-                mostrarToast('Não foi possível salvar os dados', 'fa-triangle-exclamation');
-                return false;
-            }
-        }
-
-        function escapeHtml(value) {
-            return String(value ?? '')
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
-
-        function normalizeId(value) {
-            return String(value ?? '')
-                .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '')
-                .toLowerCase()
-                .replace(/[^a-z0-9_-]/g, '-')
-                .replace(/-+/g, '-')
-                .replace(/^-|-$/g, '')
-                .slice(0, 120);
-        }
-
-        function isAllowedYouTubeUrl(value) {
-            try {
-                const url = new URL(value);
-                const host = url.hostname.toLowerCase();
-                return url.protocol === 'https:' &&
-                    ['www.youtube.com', 'youtube.com', 'm.youtube.com', 'www.youtube-nocookie.com', 'youtube-nocookie.com'].includes(host);
-            } catch {
-                return false;
-            }
-        }
-
-        function isAllowedDriveUrl(value) {
+        function isAllowedVideoUrl(value) {
             try {
                 const url = new URL(value);
-                return url.protocol === 'https:' && ['drive.google.com'].includes(url.hostname.toLowerCase());
-            } catch {
-                return false;
-            }
+                if (url.protocol !== 'https:') return false;
+                const host = url.hostname.toLowerCase().replace(/^www\./, '');
+                return ['youtube.com','youtube-nocookie.com','youtu.be'].includes(host) || host.endsWith('.youtube.com');
+            } catch (_) { return false; }
         }
 
         function isAllowedImageUrl(value) {
             try {
                 const url = new URL(value, window.location.href);
-                if (!['https:', 'http:'].includes(url.protocol)) return false;
-                const host = url.hostname.toLowerCase();
-                const path = url.pathname.toLowerCase();
-                const extensionOk = /\.(gif|jpe?g|png|webp)(?:$|\?)/.test(path);
-                const trustedHost = host === window.location.hostname || host === 'drive.google.com' || host.endsWith('.giphy.com');
-                return extensionOk || trustedHost;
-            } catch {
-                return false;
-            }
+                if (url.protocol === 'data:') return false;
+                if (url.protocol !== 'https:' && url.origin !== window.location.origin) return false;
+                const host = url.hostname.toLowerCase().replace(/^www\./, '');
+                return url.origin === window.location.origin || ['drive.google.com','googleusercontent.com','images.unsplash.com','unsplash.com','giphy.com','media.giphy.com','i.imgur.com','placehold.co'].includes(host) || host.endsWith('.googleusercontent.com') || host.endsWith('.giphy.com');
+            } catch (_) { return false; }
         }
 
-        function safeMediaUrl(rawUrl, type = 'video') {
-            const value = String(rawUrl ?? '').trim();
-            if (!value) return '';
-
-            if (type === 'video') {
-                if (isAllowedYouTubeUrl(value)) return formatarLinkMidia(value);
-                if (isAllowedDriveUrl(value)) return formatarLinkMidia(value);
-                return '';
-            }
-
-            return isAllowedImageUrl(value) ? formatarLinkMidia(value) : '';
+        function getYouTubeEmbedUrl(value) {
+            try {
+                const raw = textoSeguro(value);
+                const url = new URL(raw);
+                let id = '';
+                if (url.hostname.includes('youtu.be')) id = url.pathname.slice(1).split('/')[0];
+                else if (url.searchParams.get('v')) id = url.searchParams.get('v');
+                else {
+                    const match = url.pathname.match(/\/embed\/([^/?]+)/);
+                    if (match) id = match[1];
+                }
+                if (!id || !/^[A-Za-z0-9_-]{6,20}$/.test(id)) return '';
+                return `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1`;
+            } catch (_) { return ''; }
         }
 
-        async function sha256(text) {
-            const data = new TextEncoder().encode(text);
-            const digest = await crypto.subtle.digest('SHA-256', data);
-            return Array.from(new Uint8Array(digest))
-                .map(byte => byte.toString(16).padStart(2, '0'))
-                .join('');
+        async function sha256(value) {
+            const data = new TextEncoder().encode(value);
+            const hash = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
         }
-
-        // URL Pré-Configurada com a sua Planilha via Google Visualization API
-        const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/1c9-_V_6F6ANWPHu5Xvheg-psEPEPVB_4FVy7riPXqtI/gviz/tq?tqx=out:json&gid=390283479";
-        
-        // Banco de Dados Secundário Anti-Falhas
-        const MOCK_DB = [
-            { id: "supino-reto", nome: "Supino Reto com Barra", grupo: "Peito", video: "https://www.youtube.com/embed/sqOw2Y6uDWQ", gif: "", execucao: "Deite-se com as costas bem apoiadas no banco.;Segure a barra com as mãos um pouco mais largas que os ombros.;Desça a barra controladamente até encostar levemente no peito.;Empurre a barra de volta à posição inicial estendendo os braços.", dicas: "Mantenha os pés firmes no chão.;Não descole o quadril do banco durante o movimento.;Contraia o abdômen para proteger a lombar." },
-            { id: "puxada-frente", nome: "Puxada Frontal Polia", grupo: "Costas", video: "https://www.youtube.com/embed/CAwf7n6Luuc", gif: "", execucao: "Sente-se no aparelho e ajuste o apoio de pernas.;Segure a barra com pegada aberta.;Puxe a barra em direção ao peito, estufando o tórax.;Retorne controladamente estendendo os braços.", dicas: "Não use o peso do corpo para puxar a barra.;Foque em juntar as escápulas." },
-            { id: "leg-press-45", nome: "Leg Press 45º", grupo: "Pernas", video: "https://www.youtube.com/embed/Wz3A-n-Gv18", gif: "", execucao: "Sente-se no aparelho e apoie bem a lombar no encosto.;Coloque os pés na plataforma na largura dos ombros.;Destrave o peso e desça os joelhos até formarem um ângulo de 90º.;Empurre a plataforma de volta, sem esticar totalmente os joelhos.", dicas: "Não deixe os joelhos entrarem (valgo dinâmico).;Mantenha toda a sola do pé na plataforma." }
-        ];
 
         /* ==========================================
-           INICIALIZAÇÃO DO APLICATIVO
+           2. INICIALIZAÇÃO
            ========================================== */
         document.addEventListener('DOMContentLoaded', () => {
-            atualizarBadgeTreino();
             carregarPerfilUI();
-
-            const adminPasswordInput = document.getElementById('admin-password');
-            adminPasswordInput?.addEventListener('keydown', event => {
-                if (event.key === 'Enter') checkAdminPassword();
-            });
             
-            // 1. Tenta carregar do Cache Local para abertura instantânea (0 segundos)
-            const cacheData = safeJSONParse(localStorage.getItem('scanfit_db_cache'), null);
+            // Tenta carregar do Cache primeiro (Velocidade)
+            const cacheData = safeJSONParse('scanfit_db_cache', null);
             if (Array.isArray(cacheData) && cacheData.length) {
-                dbExercicios = cacheData;
-                renderizarBiblioteca();
-            } else {
-                dbExercicios = MOCK_DB; // Fallback imediato
+                dbExercicios = normalizarExercicios(cacheData);
+                extrairCategorias();
                 renderizarBiblioteca();
             }
 
-            // 2. Busca dados frescos da Planilha em background
+            // Sincroniza dados novos invisivelmente
             sincronizarGoogleSheets();
 
-            // 3. Lê o QR Code pela URL (ex: ?id=supino-reto)
+            // Lógica de Abertura via QR Code (ex: ?id=supino-reto)
             const urlParams = new URLSearchParams(window.location.search);
-            const qrId = urlParams.get('id');
+            const qrId = urlParams.get('id') ? normalizarId(urlParams.get('id')) : '';
             if (qrId) {
-                // Aguarda 500ms para a animação da capa antes de abrir
-                setTimeout(() => abrirExercicio(qrId), 500);
+                setTimeout(() => abrirExercicio(qrId), 400);
             }
         });
 
         /* ==========================================
-           MOTOR DE DADOS (GOOGLE SHEETS GViz API)
+           3. MOTOR GOOGLE SHEETS (API GViz)
            ========================================== */
+        function isAllowedSheetUrl(value) {
+            try {
+                const url = new URL(value);
+                return url.protocol === 'https:' && url.hostname === 'docs.google.com' && url.pathname.includes('/spreadsheets/');
+            } catch (_) { return false; }
+        }
+
         async function sincronizarGoogleSheets() {
             let sheetUrl = localStorage.getItem('scanfit_sheet_url') || DEFAULT_SHEET_URL;
-
-            // Só aceita Google Sheets. Isso evita que o campo administrativo vire um
-            // mecanismo para buscar conteúdo arbitrário de terceiros.
-            try {
-                const parsed = new URL(sheetUrl);
-                if (parsed.protocol !== 'https:' || !['docs.google.com'].includes(parsed.hostname.toLowerCase())) {
-                    throw new Error('A URL da planilha precisa ser do Google Sheets.');
-                }
-
-                if (sheetUrl.includes('/edit') || sheetUrl.includes('export?format=csv')) {
-                    const matchId = sheetUrl.match(/\/spreadsheets\/d\/([^/]+)/);
-                    const matchGid = sheetUrl.match(/[?&]gid=([0-9]+)/);
-                    if (matchId) {
-                        sheetUrl = `https://docs.google.com/spreadsheets/d/${matchId[1]}/gviz/tq?tqx=out:json`;
-                        if (matchGid) sheetUrl += `&gid=${matchGid[1]}`;
-                    }
-                }
-            } catch (error) {
-                console.error('ScanFit: URL da planilha inválida.', error);
-                return;
-            }
+            if (!isAllowedSheetUrl(sheetUrl)) sheetUrl = DEFAULT_SHEET_URL;
 
             try {
+                if (!isAllowedSheetUrl(sheetUrl)) throw new Error('URL da planilha não autorizada.');
                 const controller = new AbortController();
-                const timeout = setTimeout(() => controller.abort(), 10000);
-                const response = await fetch(sheetUrl, {
-                    method: 'GET',
-                    cache: 'no-store',
-                    signal: controller.signal
-                });
-                clearTimeout(timeout);
-
-                if (!response.ok) throw new Error(`Google Sheets respondeu ${response.status}.`);
-
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                const response = await fetch(sheetUrl, { cache: 'no-store', signal: controller.signal });
+                clearTimeout(timeoutId);
                 const text = await response.text();
-                const firstBrace = text.indexOf('{');
-                const lastBrace = text.lastIndexOf('}');
-                if (firstBrace < 0 || lastBrace <= firstBrace) throw new Error('Resposta da planilha inválida.');
-
-                const jsonString = text.substring(firstBrace, lastBrace + 1);
+                
+                // Extrai JSON válido da resposta do Gviz
+                const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+                if (!jsonString || !jsonString.startsWith('{')) throw new Error('Resposta do Google Sheets inválida.');
                 const data = JSON.parse(jsonString);
-                const table = data?.table;
-
-                if (!table || !Array.isArray(table.cols) || !Array.isArray(table.rows)) {
-                    throw new Error('Estrutura de dados da planilha inválida.');
+                const table = data.table;
+                
+                // 1. Tenta extrair os nomes das colunas pelo 'label' da API
+                let cols = table.cols.map(c => c.label ? c.label.toLowerCase().trim() : '');
+                
+                // 2. Se a API não retornou labels (acontece se a primeira linha não for marcada como cabeçalho), 
+                // vamos pegar a primeira linha de dados como cabeçalho.
+                if (cols.filter(c => c !== '').length === 0 && table.rows.length > 0) {
+                    cols = table.rows[0].c.map(col => (col && col.v) ? col.v.toString().toLowerCase().trim() : '');
+                    table.rows = table.rows.slice(1); // Remove essa linha dos dados, já que é o cabeçalho
                 }
+                
+                // Mapeamento Inteligente
+                let iId = cols.findIndex(c => c === 'id' || c.includes('código') || c.includes('codigo'));
+                let iNome = cols.findIndex(c => c.includes('nome') || c.includes('exerc'));
+                let iGrupo = cols.findIndex(c => c.includes('grupo') || c.includes('muscul') || c.includes('categoria'));
+                let iVideo = cols.findIndex(c => c.includes('video') || c.includes('vídeo') || c.includes('youtube'));
+                let iGif = cols.findIndex(c => c.includes('gif') || c.includes('imagem') || c.includes('anim'));
+                let iExec = cols.findIndex(c => c.includes('exec') || c.includes('instru') || c.includes('passo'));
+                let iDica = cols.findIndex(c => c.includes('dica') || c.includes('aviso') || c.includes('aten'));
 
-                const columns = table.cols.map(c => String(c?.label || '').toLowerCase().trim());
-                const idxId = columns.findIndex(c => c === 'id');
-                const idxNome = columns.findIndex(c => c.includes('nome') || c.includes('exerc'));
-                const idxGrupo = columns.findIndex(c => c.includes('grupo') || c.includes('muscul'));
-                const idxVideo = columns.findIndex(c => c.includes('video') || c.includes('vídeo'));
-                const idxGif = columns.findIndex(c => c.includes('gif'));
-                const idxExecucao = columns.findIndex(c => c.includes('exec') || c.includes('instru'));
-                const idxDicas = columns.findIndex(c => c.includes('dica') || c.includes('aviso'));
-
-                if (idxNome === -1) throw new Error('Coluna de Nome não encontrada.');
+                // Fallback Bruto: Se ainda assim não achou o nome, assume a ordem padrão das colunas A, B, C, D...
+                if (iNome === -1) {
+                    iId = 0;    // Coluna A
+                    iNome = 1;  // Coluna B
+                    iGrupo = 2; // Coluna C
+                    iVideo = 3; // Coluna D
+                    iGif = 4;   // Coluna E
+                    iExec = 5;  // Coluna F
+                    iDica = 6;  // Coluna G
+                }
 
                 const novosDados = [];
+                categorias = new Set(['Todos']); // Reseta categorias
 
                 table.rows.forEach(row => {
-                    if (!Array.isArray(row?.c) || !row.c[idxNome]?.v) return;
+                    // Ignora linhas totalmente vazias ou sem o Nome do exercício
+                    if (!row.c || !row.c[iNome] || row.c[iNome].v === null || row.c[iNome].v === undefined) return;
 
-                    const getVal = (idx) => (
-                        idx !== -1 && row.c[idx]?.v != null
-                            ? String(row.c[idx].v).trim()
-                            : ''
-                    );
+                    const getV = (idx) => (idx !== -1 && row.c[idx] && row.c[idx].v !== null && row.c[idx].v !== undefined) ? row.c[idx].v.toString() : "";
+                    
+                    const nome = getV(iNome).trim();
+                    if (!nome) return; // Ignora se o nome for apenas espaço em branco
 
-                    const nome = getVal(idxNome);
-                    let id = normalizeId(getVal(idxId) || nome);
-                    if (!id) return;
+                    let id = normalizarId(getV(iId) || nome);
+                    const grupo = getV(iGrupo) || 'Geral';
+                    
+                    categorias.add(grupo);
 
                     novosDados.push({
-                        id,
-                        nome: nome.slice(0, 160),
-                        grupo: (getVal(idxGrupo) || 'Geral').slice(0, 80),
-                        video: getVal(idxVideo).slice(0, 1000),
-                        gif: getVal(idxGif).slice(0, 1000),
-                        execucao: getVal(idxExecucao).slice(0, 5000),
-                        dicas: getVal(idxDicas).slice(0, 3000)
+                        id: id,
+                        nome: nome,
+                        grupo: grupo,
+                        video: getV(iVideo),
+                        gif: getV(iGif),
+                        execucao: getV(iExec),
+                        dicas: getV(iDica)
                     });
                 });
 
                 if (novosDados.length > 0) {
-                    dbExercicios = novosDados;
-                    saveLocalJSON('scanfit_db_cache', dbExercicios);
-                    renderizarBiblioteca();
-
-                    const status = document.getElementById('admin-db-status');
-                    if (status) status.textContent = `${dbExercicios.length} exercícios`;
-
-                    console.log('ScanFit: Planilha sincronizada com sucesso!');
+                    dbExercicios = normalizarExercicios(novosDados);
+                    safeStorageSet('scanfit_db_cache', dbExercicios);
                 }
+                
+                extrairCategorias();
+                renderizarBiblioteca();
+
             } catch (err) {
-                console.error('ScanFit: Falha ao carregar planilha. Usando cache ou mock.', err);
+                console.error("ScanFit Sync Error:", err);
+                // Se der erro de rede e o banco estiver vazio, carrega ao menos o placeholder
+                extrairCategorias();
+                renderizarBiblioteca();
             }
         }
 
         /* ==========================================
-           CONTROLE DE NAVEGAÇÃO E UI
+           4. CONTROLE DE UI E NAVEGAÇÃO
            ========================================== */
         function navigate(viewId) {
             currentView = viewId;
             
-            // Oculta todas as views primárias
-            ['view-landing', 'view-library', 'view-workout', 'view-profile', 'view-admin', 'view-exercise'].forEach(id => {
-                const el = document.getElementById(id);
-                el.classList.add('hidden');
-                el.classList.remove('flex');
+            // Reseta sub-views da tela de treino
+            if(viewId === 'workout') {
+                document.getElementById('workout-list-view').classList.remove('hidden');
+                document.getElementById('workout-list-view').classList.add('flex');
+                document.getElementById('workout-detail-view').classList.add('hidden');
+                document.getElementById('workout-detail-view').classList.remove('flex');
+                renderizarListaFichas();
+            }
+
+            document.querySelectorAll('.view-layer').forEach(el => {
+                el.classList.remove('active');
             });
             
-            // Mostra a selecionada
-            const target = document.getElementById(`view-${viewId}`);
-            target.classList.remove('hidden');
-            target.classList.add('flex');
+            document.getElementById(`view-${viewId}`).classList.add('active');
 
-            // Atualiza menu inferior (se não for a view de exercício ou admin que escondem o menu)
             const nav = document.getElementById('bottom-nav');
-            if (viewId === 'exercise' || viewId === 'admin' || viewId === 'landing') {
+            if (viewId === 'exercise' || viewId === 'admin') {
                 nav.style.display = 'none';
             } else {
                 nav.style.display = 'flex';
-                // Cor do botão ativo
                 document.querySelectorAll('.nav-btn').forEach(btn => {
                     if (btn.dataset.target === viewId) {
-                        btn.classList.remove('text-gray-500');
-                        btn.classList.add('text-scanfit-green');
+                        btn.classList.replace('text-gray-500', 'text-scanfit-green');
                     } else {
-                        btn.classList.remove('text-scanfit-green');
-                        btn.classList.add('text-gray-500');
+                        btn.classList.replace('text-scanfit-green', 'text-gray-500');
                     }
                 });
             }
-
-            // Atualiza dados na tela correta
-            if (viewId === 'workout') renderizarTreino();
         }
 
         function voltar() {
-            // Em vez de manipular histórico (que dá erro de segurança em iframes/blobs locais),
-            // fazemos uma rotação simples para a aba anterior lógica.
             if(exercicioAtual) {
                 exercicioAtual = null;
-                document.getElementById('media-container').replaceChildren(); // Limpa player
+                document.getElementById('media-container').innerHTML = ''; // Limpa player p/ poupar memória
                 navigate('library');
             } else {
                 navigate('landing');
@@ -718,7 +781,7 @@
 
         function mostrarToast(mensagem, icone = "fa-check-circle") {
             const toast = document.getElementById('toast');
-            document.getElementById('toast-msg').innerText = mensagem;
+            document.getElementById('toast-msg').textContent = mensagem;
             document.getElementById('toast-icon').className = `fa-solid ${icone} text-scanfit-green`;
             
             toast.classList.remove('-translate-y-24', 'opacity-0');
@@ -731,50 +794,41 @@
         }
 
         /* ==========================================
-           SISTEMA DE BIBLIOTECA E FILTROS (OTIMIZADO)
+           5. BIBLIOTECA E FILTROS (ALTA PERFORMANCE)
            ========================================== */
+        function extrairCategorias() {
+            const container = document.getElementById('category-container');
+            container.replaceChildren();
+            Array.from(categorias).forEach(cat => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = `category-chip flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${cat === currentCategory ? 'bg-scanfit-green text-black' : 'bg-scanfit-card text-gray-400 border border-gray-800 hover:text-white'}`;
+                button.textContent = cat;
+                button.addEventListener('click', () => setCategory(cat));
+                container.appendChild(button);
+            });
+        }
+
         function setCategory(cat) {
             currentCategory = cat;
-            document.querySelectorAll('.category-chip').forEach(el => {
-                if(el.innerText === cat) {
-                    el.classList.remove('bg-scanfit-card', 'text-gray-400', 'border-gray-800');
-                    el.classList.add('bg-scanfit-green', 'text-black');
-                } else {
-                    el.classList.add('bg-scanfit-card', 'text-gray-400', 'border-gray-800');
-                    el.classList.remove('bg-scanfit-green', 'text-black');
-                }
-            });
+            extrairCategorias();
             renderizarBiblioteca();
         }
 
         function aoDigitarBusca() {
             clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(renderizarBiblioteca, 300); // Debounce de 300ms
+            debounceTimer = setTimeout(renderizarBiblioteca, 300);
         }
 
         function renderizarBiblioteca() {
-            const input = document.getElementById('input-busca');
+            const termo = textoSeguro(document.getElementById('input-busca').value).toLowerCase();
             const container = document.getElementById('lista-exercicios');
-            const termo = String(input?.value || '').toLowerCase().trim();
-
             let filtrados = Array.isArray(dbExercicios) ? dbExercicios : [];
-
-            if (currentCategory !== 'Todos') {
-                filtrados = filtrados.filter(ex =>
-                    String(ex.grupo || '').toLowerCase().includes(currentCategory.toLowerCase())
-                );
-            }
-
-            if (termo) {
-                filtrados = filtrados.filter(ex =>
-                    String(ex.nome || '').toLowerCase().includes(termo) ||
-                    String(ex.grupo || '').toLowerCase().includes(termo)
-                );
-            }
+            if (currentCategory !== 'Todos') filtrados = filtrados.filter(ex => ex.grupo === currentCategory);
+            if (termo) filtrados = filtrados.filter(ex => ex.nome.toLowerCase().includes(termo) || ex.grupo.toLowerCase().includes(termo));
 
             container.replaceChildren();
-
-            if (filtrados.length === 0) {
+            if (!filtrados.length) {
                 const empty = document.createElement('div');
                 empty.className = 'text-center text-gray-500 py-10 text-sm';
                 empty.textContent = 'Nenhum exercício encontrado.';
@@ -783,152 +837,70 @@
             }
 
             const fragment = document.createDocumentFragment();
-
             filtrados.forEach(ex => {
-                const card = document.createElement('div');
-                card.className = 'bg-scanfit-card border border-gray-800 rounded-2xl p-3 flex items-center gap-4 active:scale-95 transition-transform shadow-sm cursor-pointer';
-                card.tabIndex = 0;
-                card.setAttribute('role', 'button');
-                card.setAttribute('aria-label', `Abrir exercício ${ex.nome || ''}`);
-
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.className = 'w-full text-left bg-scanfit-card border border-gray-800 rounded-2xl p-3 flex items-center gap-4 active:scale-95 transition-transform shadow-sm cursor-pointer';
                 card.addEventListener('click', () => abrirExercicio(ex.id));
-                card.addEventListener('keydown', event => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        abrirExercicio(ex.id);
-                    }
-                });
-
-                const iconWrap = document.createElement('div');
-                iconWrap.className = 'w-14 h-14 rounded-xl bg-black border border-gray-800 flex flex-col items-center justify-center text-gray-600 flex-shrink-0 relative overflow-hidden';
-
-                const icon = document.createElement('i');
-                icon.className = ex.video
-                    ? 'fa-solid fa-play text-scanfit-green/50 text-xl'
-                    : 'fa-solid fa-image text-gray-600';
-                iconWrap.appendChild(icon);
-
-                const info = document.createElement('div');
-                info.className = 'flex-1 min-w-0';
-
-                const group = document.createElement('span');
-                group.className = 'text-[9px] font-bold text-scanfit-green uppercase tracking-wider block mb-0.5';
-                group.textContent = ex.grupo || 'Geral';
-
-                const title = document.createElement('h3');
-                title.className = 'text-sm font-bold text-white truncate';
-                title.textContent = ex.nome || 'Exercício';
-
-                info.append(group, title);
-
-                const arrowWrap = document.createElement('div');
-                arrowWrap.className = 'w-8 h-8 rounded-full bg-scanfit-dark flex items-center justify-center border border-gray-800 text-gray-400 flex-shrink-0';
-                const arrow = document.createElement('i');
-                arrow.className = 'fa-solid fa-chevron-right text-xs';
-                arrowWrap.appendChild(arrow);
-
-                card.append(iconWrap, info, arrowWrap);
+                const icon = ex.video ? 'fa-play text-scanfit-green/50 text-xl' : (ex.gif ? 'fa-image text-gray-600' : 'fa-dumbbell text-gray-800');
+                card.innerHTML = `<div class="w-14 h-14 rounded-xl bg-black border border-gray-800 flex flex-col items-center justify-center text-gray-600 flex-shrink-0 relative overflow-hidden"><i class="fa-solid ${icon}"></i></div><div class="flex-1 min-w-0"><span class="text-[9px] font-bold text-scanfit-green uppercase tracking-wider block mb-0.5"></span><h3 class="text-sm font-bold text-white truncate"></h3></div><div class="w-8 h-8 rounded-full bg-scanfit-dark flex items-center justify-center border border-gray-800 text-gray-400 flex-shrink-0"><i class="fa-solid fa-chevron-right text-xs"></i></div>`;
+                card.querySelector('span').textContent = ex.grupo;
+                card.querySelector('h3').textContent = ex.nome;
                 fragment.appendChild(card);
             });
-
             container.appendChild(fragment);
         }
 
         /* ==========================================
-           VISUALIZAÇÃO DE EXERCÍCIO (PLAYER MÍDIA)
+           6. PLAYER E FORMATADOR DE MÍDIA
            ========================================== */
-        function formatarLinkMidia(url) {
-            if (!url) return '';
-
+        function formatarLinkMidia(url, tipo = 'image') {
+            const raw = textoSeguro(url);
+            if (!raw) return '';
+            if (tipo === 'video') return getYouTubeEmbedUrl(raw);
             try {
-                const parsed = new URL(String(url).trim());
-
-                if (parsed.hostname === 'drive.google.com' && parsed.pathname.includes('/file/d/')) {
-                    const match = parsed.pathname.match(/\/file\/d\/([^/]+)/);
-                    if (match) return `https://drive.google.com/uc?export=view&id=${encodeURIComponent(match[1])}`;
+                const urlObj = new URL(raw, window.location.href);
+                if (urlObj.hostname.includes('drive.google.com')) {
+                    const match = raw.match(/[-\w]{25,}/);
+                    if (match) return `https://drive.google.com/uc?export=view&id=${match[0]}`;
                 }
-
-                if (['youtube.com', 'www.youtube.com', 'm.youtube.com'].includes(parsed.hostname)) {
-                    const videoId = parsed.searchParams.get('v');
-                    if (videoId) return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`;
-                }
-
-                if (parsed.hostname === 'youtu.be') {
-                    const videoId = parsed.pathname.slice(1).split('/')[0];
-                    if (videoId) return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`;
-                }
-
-                return parsed.href;
-            } catch {
-                return '';
-            }
+                return isAllowedImageUrl(raw) ? urlObj.href : '';
+            } catch (_) { return ''; }
         }
 
         function abrirExercicio(id) {
-            const safeId = String(id ?? '');
-            exercicioAtual = dbExercicios.find(item => String(item.id) === safeId);
+            const normalizedId = normalizarId(id);
+            exercicioAtual = dbExercicios.find(item => item.id === normalizedId || item.id === id);
+            if (!exercicioAtual) return mostrarToast('Exercício não encontrado', 'fa-triangle-exclamation');
 
-            if (!exercicioAtual) {
-                mostrarToast('Exercício não encontrado', 'fa-triangle-exclamation');
-                return;
-            }
+            document.getElementById('ex-nome').textContent = exercicioAtual.nome;
+            document.getElementById('ex-grupo').textContent = exercicioAtual.grupo;
 
-            document.getElementById('ex-nome').textContent = exercicioAtual.nome || 'Exercício';
-            document.getElementById('ex-grupo').textContent = exercicioAtual.grupo || 'Geral';
-
-            const passosRaw = String(
-                exercicioAtual.execucao ||
-                'Preste atenção na postura.;Siga o movimento com controle.'
-            );
-            const separador = passosRaw.includes(';') ? ';' : '|';
-            const passos = passosRaw.split(separador).map(p => p.trim()).filter(Boolean);
-
-            const ul = document.getElementById('ex-instrucoes');
-            ul.replaceChildren();
-
-            const fragment = document.createDocumentFragment();
-            passos.forEach((passo, idx) => {
+            const lista = document.getElementById('ex-instrucoes');
+            lista.replaceChildren();
+            const passosRaw = exercicioAtual.execucao || 'Observe o movimento.;Mantenha o controle.';
+            const separador = passosRaw.includes(';') ? ';' : (passosRaw.includes('|') ? '|' : '\n');
+            passosRaw.split(separador).filter(p => p.trim()).forEach((passo, idx) => {
                 const li = document.createElement('li');
                 li.className = 'flex items-start gap-3 bg-black/40 border border-gray-800/50 p-3.5 rounded-xl';
-
-                const number = document.createElement('span');
-                number.className = 'flex-shrink-0 w-6 h-6 rounded-full bg-scanfit-card border border-scanfit-green/50 flex items-center justify-center text-[10px] font-extrabold text-scanfit-green mt-0.5 shadow-[0_0_10px_rgba(143,227,2,0.1)]';
-                number.textContent = String(idx + 1);
-
-                const text = document.createElement('p');
-                text.className = 'text-[13px] text-gray-300 font-medium leading-relaxed';
-                text.textContent = passo;
-
-                li.append(number, text);
-                fragment.appendChild(li);
+                li.innerHTML = `<span class="flex-shrink-0 w-6 h-6 rounded-full bg-scanfit-card border border-scanfit-green/50 flex items-center justify-center text-[10px] font-extrabold text-scanfit-green mt-0.5 shadow-[0_0_10px_rgba(143,227,2,0.1)]"></span><p class="text-[13px] text-gray-300 font-medium leading-relaxed"></p>`;
+                li.querySelector('span').textContent = String(idx + 1);
+                li.querySelector('p').textContent = passo.trim();
+                lista.appendChild(li);
             });
-            ul.appendChild(fragment);
 
             const tipsDiv = document.getElementById('ex-tips-container');
-            const tipsEl = document.getElementById('ex-tips');
-            tipsEl.replaceChildren();
-
-            if (exercicioAtual.dicas && String(exercicioAtual.dicas).trim()) {
-                const dicas = String(exercicioAtual.dicas)
-                    .split(';')
-                    .map(d => d.trim())
-                    .filter(Boolean);
-
-                const tipsFragment = document.createDocumentFragment();
-                dicas.forEach(dica => {
-                    const line = document.createElement('div');
-                    line.textContent = `• ${dica}`;
-                    tipsFragment.appendChild(line);
-                });
-                tipsEl.appendChild(tipsFragment);
+            const tips = document.getElementById('ex-tips');
+            if (exercicioAtual.dicas) {
+                tips.textContent = '• ' + exercicioAtual.dicas.split(/[;|]/).map(t => t.trim()).filter(Boolean).join('\n• ');
+                tips.style.whiteSpace = 'pre-line';
                 tipsDiv.classList.remove('hidden');
             } else {
+                tips.textContent = '';
                 tipsDiv.classList.add('hidden');
             }
 
-            atualizarBotaoTreinoUI();
             navigate('exercise');
-
             if (exercicioAtual.video) alternarMidia('video');
             else if (exercicioAtual.gif) alternarMidia('gif');
             else alternarMidia('nenhum');
@@ -938,174 +910,214 @@
             const container = document.getElementById('media-container');
             const btnVid = document.getElementById('btn-video');
             const btnGif = document.getElementById('btn-gif');
-
             currentMediaType = tipo;
             container.replaceChildren();
 
+            const setButtonState = (active, other) => {
+                active.className = 'flex-1 py-3 rounded-xl text-sm font-bold bg-scanfit-green text-black shadow-md';
+                other.className = 'flex-1 py-3 rounded-xl text-sm font-bold text-gray-400 hover:text-white';
+            };
+
             if (tipo === 'video') {
-                btnVid.className = "flex-1 py-3 rounded-xl text-sm font-bold bg-scanfit-green text-black transition-all shadow-md";
-                btnGif.className = "flex-1 py-3 rounded-xl text-sm font-bold text-gray-400 hover:text-white transition-all";
-
-                const url = safeMediaUrl(exercicioAtual?.video, 'video');
-                if (url) {
-                    const iframe = document.createElement('iframe');
-                    iframe.src = url;
-                    iframe.className = 'absolute inset-0 w-full h-full object-cover';
-                    iframe.setAttribute('frameborder', '0');
-                    iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
-                    iframe.setAttribute('allowfullscreen', '');
-                    iframe.setAttribute('title', `Vídeo de ${exercicioAtual?.nome || 'exercício'}`);
-                    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
-                    container.appendChild(iframe);
-                } else {
-                    mostrarPlaceholderMedia(container, 'fa-video-slash', 'Sem Vídeo');
-                }
+                setButtonState(btnVid, btnGif);
+                const url = formatarLinkMidia(exercicioAtual?.video, 'video');
+                if (!url) return mostrarEstadoMidia('Sem vídeo disponível', 'fa-video-slash');
+                const iframe = document.createElement('iframe');
+                iframe.src = url;
+                iframe.className = 'absolute inset-0 w-full h-full';
+                iframe.title = `Vídeo demonstrativo: ${exercicioAtual.nome}`;
+                iframe.setAttribute('frameborder', '0');
+                iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+                iframe.setAttribute('allowfullscreen', '');
+                iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+                container.appendChild(iframe);
             } else if (tipo === 'gif') {
-                btnGif.className = "flex-1 py-3 rounded-xl text-sm font-bold bg-scanfit-green text-black transition-all shadow-md";
-                btnVid.className = "flex-1 py-3 rounded-xl text-sm font-bold text-gray-400 hover:text-white transition-all";
-
-                const url = safeMediaUrl(exercicioAtual?.gif, 'gif');
-                if (url) {
-                    const img = document.createElement('img');
-                    img.src = url;
-                    img.className = 'absolute inset-0 w-full h-full object-cover opacity-90';
-                    img.alt = `Demonstração em GIF de ${exercicioAtual?.nome || 'exercício'}`;
-                    img.loading = 'lazy';
-                    img.referrerPolicy = 'no-referrer';
-                    container.appendChild(img);
-                } else {
-                    mostrarPlaceholderMedia(container, 'fa-image', 'Sem GIF');
-                }
+                setButtonState(btnGif, btnVid);
+                const url = formatarLinkMidia(exercicioAtual?.gif, 'image');
+                if (!url) return mostrarEstadoMidia('Imagem/GIF indisponível', 'fa-image');
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = `Demonstração de ${exercicioAtual.nome}`;
+                img.className = 'absolute inset-0 w-full h-full object-cover opacity-90';
+                img.loading = 'lazy';
+                img.decoding = 'async';
+                img.onerror = () => { img.remove(); mostrarEstadoMidia('Link de imagem inválido', 'fa-link-slash'); };
+                container.appendChild(img);
             } else {
-                mostrarPlaceholderMedia(container, 'fa-circle-exclamation', 'Mídia indisponível');
+                btnVid.className = 'flex-1 py-3 rounded-xl text-sm font-bold text-gray-400 hover:text-white';
+                btnGif.className = 'flex-1 py-3 rounded-xl text-sm font-bold text-gray-400 hover:text-white';
+                mostrarEstadoMidia('Mídia não disponível', 'fa-photo-film');
             }
         }
 
-        function mostrarPlaceholderMedia(container, iconClass, label) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'text-gray-500 flex flex-col items-center';
-
-            const icon = document.createElement('i');
-            icon.className = `fa-solid ${iconClass} text-2xl mb-1`;
-
-            const text = document.createElement('span');
-            text.className = 'text-[10px] uppercase font-bold tracking-widest';
-            text.textContent = label;
-
-            wrapper.append(icon, text);
-            container.appendChild(wrapper);
+        function mostrarEstadoMidia(texto, icone) {
+            const container = document.getElementById('media-container');
+            container.replaceChildren();
+            const box = document.createElement('div');
+            box.className = 'text-gray-600 flex flex-col items-center justify-center h-full';
+            box.innerHTML = `<i class="fa-solid ${escapeAttr(icone)} text-2xl mb-2"></i><span class="text-[10px] font-bold uppercase"></span>`;
+            box.querySelector('span').textContent = texto;
+            container.appendChild(box);
         }
 
         /* ==========================================
-           GERENCIAMENTO DO TREINO
+           7. SISTEMA DE FICHAS (MÚLTIPLOS TREINOS)
            ========================================== */
-        function toggleTreinoAtual() {
-            if(!exercicioAtual) return;
-            
-            const index = treinoSalvo.findIndex(t => t.id === exercicioAtual.id);
-            if (index > -1) {
-                treinoSalvo.splice(index, 1);
-                mostrarToast("Removido do treino", "fa-minus-circle");
-            } else {
-                treinoSalvo.push({
-                    id: exercicioAtual.id,
-                    nome: exercicioAtual.nome,
-                    grupo: exercicioAtual.grupo
-                });
-                mostrarToast("Adicionado ao treino!", "fa-check-circle");
-            }
-            
-            saveLocalJSON('scanfit_treino', treinoSalvo);
-            atualizarBotaoTreinoUI();
-            atualizarBadgeTreino();
+        function salvarTreinosLocalStorage() {
+            safeStorageSet('scanfit_treinos', meusTreinos);
         }
 
-        function atualizarBotaoTreinoUI() {
-            const btn = document.getElementById('btn-add-workout');
-            if(!btn || !exercicioAtual) return;
-            
-            const estaNoTreino = treinoSalvo.some(t => t.id === exercicioAtual.id);
-            if (estaNoTreino) {
-                btn.className = "flex-shrink-0 w-10 h-10 rounded-xl bg-scanfit-green text-black flex items-center justify-center shadow-[0_0_15px_rgba(143,227,2,0.3)] active:scale-90 transition-all";
-                btn.innerHTML = '<i class="fa-solid fa-check text-lg"></i>';
-            } else {
-                btn.className = "flex-shrink-0 w-10 h-10 rounded-xl bg-scanfit-card border border-gray-800 text-gray-400 hover:text-white flex items-center justify-center shadow-sm active:scale-90 transition-all";
-                btn.innerHTML = '<i class="fa-solid fa-plus text-lg"></i>';
+        function criarNovoTreino(vindoDoModal = false) {
+            const nomeTreino = prompt("Digite um nome para o treino (Ex: Treino A - Peito):");
+            if(nomeTreino && nomeTreino.trim() !== "") {
+                const novoTreino = {
+                    id: 'ficha_' + Date.now(),
+                    nome: nomeTreino.trim(),
+                    exercicios: []
+                };
+                meusTreinos.push(novoTreino);
+                salvarTreinosLocalStorage();
+                mostrarToast(`Ficha "${nomeTreino}" criada!`);
+                
+                if(vindoDoModal) {
+                    // Adiciona direto na ficha criada se veio do botão adicionar exercício
+                    adicionarExercicioNaFicha(novoTreino.id);
+                } else {
+                    renderizarListaFichas();
+                }
             }
         }
 
-        function atualizarBadgeTreino() {
-            const badge = document.getElementById('badge-treino');
-            const qty = treinoSalvo.length;
-            badge.innerText = qty;
-            if(qty > 0) badge.classList.remove('scale-0');
-            else badge.classList.add('scale-0');
-        }
-
-        function renderizarTreino() {
-            const container = document.getElementById('lista-treino');
+        function renderizarListaFichas() {
+            const container = document.getElementById('container-fichas');
             const emptyState = document.getElementById('workout-empty');
             container.replaceChildren();
-
-            if (!Array.isArray(treinoSalvo) || treinoSalvo.length === 0) {
-                emptyState.classList.remove('hidden');
-                emptyState.classList.add('flex');
-                return;
+            if (!meusTreinos.length) {
+                emptyState.classList.remove('hidden'); emptyState.classList.add('flex'); return;
             }
-
-            emptyState.classList.add('hidden');
-            emptyState.classList.remove('flex');
-
+            emptyState.classList.add('hidden'); emptyState.classList.remove('flex');
             const fragment = document.createDocumentFragment();
-
-            treinoSalvo.forEach((ex, index) => {
-                const card = document.createElement('div');
-                card.className = 'bg-black border border-gray-800 rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden';
-
-                const accent = document.createElement('div');
-                accent.className = 'absolute left-0 top-0 bottom-0 w-1 bg-scanfit-green';
-
-                const number = document.createElement('div');
-                number.className = 'w-8 h-8 rounded-full bg-scanfit-card border border-gray-800 flex items-center justify-center text-xs font-bold text-gray-400 flex-shrink-0';
-                number.textContent = String(index + 1);
-
-                const info = document.createElement('div');
-                info.className = 'flex-1 min-w-0 pr-2';
-
-                const group = document.createElement('span');
-                group.className = 'text-[9px] font-bold text-gray-500 uppercase tracking-wider block mb-0.5';
-                group.textContent = ex.grupo || 'Geral';
-
-                const title = document.createElement('h3');
-                title.className = 'text-sm font-bold text-white truncate';
-                title.textContent = ex.nome || 'Exercício';
-
-                info.append(group, title);
-
-                const button = document.createElement('button');
-                button.className = 'bg-scanfit-green text-black px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-wide shadow-sm active:scale-95 transition-transform';
-                button.textContent = 'TREINAR';
-                button.addEventListener('click', () => abrirExercicio(ex.id));
-
-                card.append(accent, number, info, button);
+            meusTreinos.forEach(ficha => {
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.className = 'w-full text-left bg-scanfit-card border border-gray-800 rounded-2xl p-4 flex items-center justify-between shadow-sm active:scale-95 transition-transform cursor-pointer';
+                card.addEventListener('click', () => abrirFicha(ficha.id));
+                card.innerHTML = `<div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-scanfit-dark border border-gray-700 flex items-center justify-center text-scanfit-green"><i class="fa-solid fa-clipboard-list text-lg"></i></div><div><h3 class="text-sm font-bold text-white"></h3><p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-0.5"></p></div></div><i class="fa-solid fa-chevron-right text-gray-600 text-sm"></i>`;
+                card.querySelector('h3').textContent = ficha.nome;
+                const qtd = ficha.exercicios.length;
+                card.querySelector('p').textContent = `${qtd} ${qtd === 1 ? 'exercício' : 'exercícios'}`;
                 fragment.appendChild(card);
             });
-
             container.appendChild(fragment);
         }
 
-        function limparTreino() {
-            if(confirm("Deseja esvaziar seu treino atual?")) {
-                treinoSalvo = [];
-                localStorage.removeItem('scanfit_treino');
-                atualizarBadgeTreino();
-                renderizarTreino();
-                mostrarToast("Treino limpo", "fa-trash");
+        function abrirFicha(id) {
+            treinoDetalheAtivo = id;
+            const ficha = meusTreinos.find(t => t.id === id);
+            if(!ficha) return;
+
+            document.getElementById('workout-list-view').classList.add('hidden');
+            document.getElementById('workout-list-view').classList.remove('flex');
+            document.getElementById('workout-detail-view').classList.remove('hidden');
+            document.getElementById('workout-detail-view').classList.add('flex');
+            
+            document.getElementById('detalhe-treino-nome').innerText = ficha.nome;
+            renderizarDetalheFicha();
+        }
+
+        function fecharDetalheTreino() {
+            treinoDetalheAtivo = null;
+            document.getElementById('workout-detail-view').classList.add('hidden');
+            document.getElementById('workout-detail-view').classList.remove('flex');
+            document.getElementById('workout-list-view').classList.remove('hidden');
+            document.getElementById('workout-list-view').classList.add('flex');
+            renderizarListaFichas();
+        }
+
+        function renderizarDetalheFicha() {
+            const ficha = meusTreinos.find(t => t.id === treinoDetalheAtivo);
+            const container = document.getElementById('detalhe-treino-lista');
+            const empty = document.getElementById('detalhe-empty');
+            container.replaceChildren();
+            if (!ficha || !ficha.exercicios.length) { empty.classList.remove('hidden'); return; }
+            empty.classList.add('hidden');
+            ficha.exercicios.forEach((ex, index) => {
+                const row = document.createElement('div');
+                row.className = 'bg-black border border-gray-800 rounded-2xl p-4 flex items-center gap-3 relative overflow-hidden';
+                row.innerHTML = `<div class="w-6 h-6 rounded-full bg-scanfit-card border border-gray-800 flex items-center justify-center text-[10px] font-bold text-gray-500 flex-shrink-0"></div><div class="flex-1 min-w-0 pr-2"><h3 class="text-xs font-bold text-white truncate"></h3><span class="text-[9px] font-bold text-gray-600 uppercase tracking-wider"></span></div><div class="flex gap-2"><button type="button" class="btn-play w-8 h-8 rounded-lg bg-scanfit-green text-black flex items-center justify-center shadow-sm active:scale-95 transition-transform"><i class="fa-solid fa-play text-xs"></i></button><button type="button" class="btn-remove w-8 h-8 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 flex items-center justify-center active:scale-95 transition-transform"><i class="fa-solid fa-xmark text-xs"></i></button></div>`;
+                row.querySelector('div').textContent = index + 1;
+                row.querySelector('h3').textContent = ex.nome;
+                row.querySelector('span').textContent = ex.grupo;
+                row.querySelector('.btn-play').addEventListener('click', () => abrirExercicio(ex.id));
+                row.querySelector('.btn-remove').addEventListener('click', () => removerExercicioDaFicha(ex.id));
+                container.appendChild(row);
+            });
+        }
+
+        function removerExercicioDaFicha(exercicioId) {
+            const ficha = meusTreinos.find(t => t.id === treinoDetalheAtivo);
+            if(ficha) {
+                ficha.exercicios = ficha.exercicios.filter(e => e.id !== exercicioId);
+                salvarTreinosLocalStorage();
+                renderizarDetalheFicha();
             }
         }
 
+        function excluirTreinoAtual() {
+            if(confirm("Deseja realmente apagar esta ficha inteira?")) {
+                meusTreinos = meusTreinos.filter(t => t.id !== treinoDetalheAtivo);
+                salvarTreinosLocalStorage();
+                fecharDetalheTreino();
+                mostrarToast("Ficha excluída", "fa-trash");
+            }
+        }
+
+        // Lógica do Modal de Adicionar (A partir da Tela do Exercício)
+        function abrirModalAdicionarFicha() {
+            if (!exercicioAtual) return;
+            if (!meusTreinos.length) { criarNovoTreino(true); return; }
+            const container = document.getElementById('lista-fichas-modal');
+            container.replaceChildren();
+            meusTreinos.forEach(ficha => {
+                const jaTem = ficha.exercicios.some(e => e.id === exercicioAtual.id);
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.disabled = jaTem;
+                button.className = `w-full bg-black border ${jaTem ? 'border-scanfit-green/50 opacity-60' : 'border-gray-800'} rounded-xl p-4 flex justify-between items-center text-left active:scale-95 transition-transform`;
+                button.innerHTML = `<div><div class="text-sm font-bold text-white"></div><div class="text-[10px] text-gray-500 uppercase"></div></div><i class="fa-solid ${jaTem ? 'fa-check text-scanfit-green' : 'fa-plus text-gray-500'} text-lg"></i>`;
+                button.querySelector('div > div').textContent = ficha.nome;
+                button.querySelector('div > div + div').textContent = `${ficha.exercicios.length} exercícios`;
+                if (!jaTem) button.addEventListener('click', () => adicionarExercicioNaFicha(ficha.id));
+                container.appendChild(button);
+            });
+            document.getElementById('modal-escolher-ficha').classList.remove('hidden');
+            document.getElementById('modal-escolher-ficha').classList.add('flex');
+        }
+
+        function fecharModalFicha() {
+            document.getElementById('modal-escolher-ficha').classList.add('hidden');
+            document.getElementById('modal-escolher-ficha').classList.remove('flex');
+        }
+
+        function adicionarExercicioNaFicha(idFicha) {
+            const ficha = meusTreinos.find(t => t.id === idFicha);
+            if(ficha && exercicioAtual) {
+                // Evita duplicados na mesma ficha
+                if(!ficha.exercicios.some(e => e.id === exercicioAtual.id)) {
+                    ficha.exercicios.push({
+                        id: exercicioAtual.id,
+                        nome: exercicioAtual.nome,
+                        grupo: exercicioAtual.grupo
+                    });
+                    salvarTreinosLocalStorage();
+                    mostrarToast(`Adicionado a ${ficha.nome}!`);
+                }
+            }
+            fecharModalFicha();
+        }
+
         /* ==========================================
-           PERFIL E CALCULADORA DE IMC
+           8. PERFIL E CALCULADORA DE IMC
            ========================================== */
         function carregarPerfilUI() {
             if(perfilDados.nome) document.getElementById('prof-nome').value = perfilDados.nome;
@@ -1118,13 +1130,13 @@
 
         function salvarPerfil() {
             perfilDados = {
-                nome: document.getElementById('prof-nome').value,
+                nome: textoSeguro(document.getElementById('prof-nome').value).slice(0, 80),
                 idade: document.getElementById('prof-idade').value,
                 objetivo: document.getElementById('prof-objetivo').value,
                 peso: document.getElementById('prof-peso').value,
                 altura: document.getElementById('prof-altura').value,
             };
-            saveLocalJSON('scanfit_perfil', perfilDados);
+            safeStorageSet('scanfit_perfil', perfilDados);
             mostrarToast("Dados salvos com sucesso!");
         }
 
@@ -1138,7 +1150,7 @@
             if(peso > 0 && alturaCm > 0) {
                 const alturaM = alturaCm / 100;
                 const imc = (peso / (alturaM * alturaM)).toFixed(1);
-                valorEl.innerText = imc;
+                valorEl.textContent = imc;
                 divResultado.classList.remove('hidden');
 
                 let status = "";
@@ -1149,7 +1161,7 @@
                 else if (imc < 29.9) { status = "Sobrepeso"; colorClass = "text-yellow-500"; }
                 else { status = "Obesidade"; colorClass = "text-red-500"; }
 
-                statusEl.innerText = status;
+                statusEl.textContent = status;
                 statusEl.className = `text-[10px] font-bold uppercase tracking-wider ${colorClass}`;
             } else {
                 divResultado.classList.add('hidden');
@@ -1157,75 +1169,60 @@
         }
 
         /* ==========================================
-           PAINEL ADMIN SECRETO
+           9. PAINEL DE ADMINISTRAÇÃO
            ========================================== */
         async function checkAdminPassword() {
             const now = Date.now();
             if (now < adminLockedUntil) {
                 const seconds = Math.ceil((adminLockedUntil - now) / 1000);
-                mostrarToast(`Tente novamente em ${seconds}s`, 'fa-clock');
-                return;
+                return mostrarToast(`Aguarde ${seconds}s para tentar novamente`, 'fa-lock');
             }
-
-            const pwd = document.getElementById('admin-password').value;
-            if (!pwd) {
-                mostrarToast('Digite a senha', 'fa-triangle-exclamation');
-                return;
-            }
-
+            const input = document.getElementById('admin-password');
+            const password = input.value;
+            if (!password) return mostrarToast('Digite a senha', 'fa-triangle-exclamation');
             try {
-                const hash = await sha256(pwd);
-
+                const hash = await sha256(password);
                 if (hash === ADMIN_PASSWORD_HASH) {
                     adminAttempts = 0;
                     document.getElementById('admin-auth').classList.add('hidden');
                     document.getElementById('admin-panel').classList.remove('hidden');
-                    document.getElementById('admin-url').value =
-                        localStorage.getItem('scanfit_sheet_url') || DEFAULT_SHEET_URL;
-                    document.getElementById('admin-password').value = '';
+                    document.getElementById('admin-url').value = localStorage.getItem('scanfit_sheet_url') || DEFAULT_SHEET_URL;
+                    input.value = '';
+                    mostrarToast('Acesso autorizado');
                 } else {
                     adminAttempts++;
-                    if (adminAttempts >= 5) {
-                        adminLockedUntil = Date.now() + 30000;
-                        adminAttempts = 0;
-                        mostrarToast('Muitas tentativas. Aguarde 30s', 'fa-lock');
-                    } else {
-                        mostrarToast('Senha incorreta', 'fa-xmark');
-                    }
+                    if (adminAttempts >= 5) { adminLockedUntil = Date.now() + 30000; adminAttempts = 0; }
+                    mostrarToast('Senha incorreta', 'fa-xmark');
+                    input.value = '';
                 }
             } catch (error) {
-                console.error('ScanFit: falha na autenticação local.', error);
-                mostrarToast('Não foi possível autenticar', 'fa-triangle-exclamation');
+                console.error(error);
+                mostrarToast('Não foi possível validar a senha', 'fa-triangle-exclamation');
             }
         }
 
         function salvarURLPlanilha() {
             const input = document.getElementById('admin-url');
-            const url = input.value.trim();
-
-            if (!url) {
-                mostrarToast('Informe a URL da planilha', 'fa-triangle-exclamation');
-                return;
+            const url = textoSeguro(input.value);
+            if (!isAllowedSheetUrl(url)) {
+                return mostrarToast('Use um link válido do Google Sheets', 'fa-triangle-exclamation');
             }
-
-            try {
-                const parsed = new URL(url);
-                if (parsed.protocol !== 'https:' || parsed.hostname.toLowerCase() !== 'docs.google.com') {
-                    throw new Error('URL inválida');
-                }
-            } catch {
-                mostrarToast('Use uma URL válida do Google Sheets', 'fa-triangle-exclamation');
-                return;
-            }
-
-            try {
-                localStorage.setItem('scanfit_sheet_url', url);
-                mostrarToast('Configuração salva!');
-                sincronizarGoogleSheets();
-            } catch {
-                mostrarToast('Não foi possível salvar a configuração', 'fa-triangle-exclamation');
-            }
+            try { localStorage.setItem('scanfit_sheet_url', url); } catch (_) {}
+            mostrarToast('Configuração salva. Sincronizando...');
+            sincronizarGoogleSheets();
         }
+
+        document.getElementById('admin-password')?.addEventListener('keydown', event => {
+            if (event.key === 'Enter') checkAdminPassword();
+        });
+
+        window.addEventListener('error', event => {
+            console.error('ScanFit error:', event.error || event.message);
+        });
+
+        window.addEventListener('unhandledrejection', event => {
+            console.error('ScanFit async error:', event.reason);
+        });
 
     </script>
 </body>
