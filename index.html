@@ -1,45 +1,33 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="antialiased">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0A0A0A">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>ScanFit - O seu treino inteligente</title>
+    <title>ScanFit - Seu Movimento com Precisão</title>
+    
+    <!-- Fontes e Ícones -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- PapaParse -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        scanfit: {
-                            green: '#8FE302',
-                            greenHover: '#7bc202',
-                            dark: '#0A0A0A',
-                            card: '#161616',
-                            gray: '#A0A0A0',
-                            panel: '#111111'
-                        }
+                        'scanfit-green': '#8FE302',
+                        'scanfit-dark': '#0a0a0a',
+                        'scanfit-card': '#161616',
                     },
                     animation: {
-                        'fade-in': 'fadeIn 0.3s ease-out',
-                        'slide-up': 'slideUp 0.4s ease-out',
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fade-in': 'fadeIn 0.3s ease-out forwards',
+                        'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
-                        slideUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }
                     }
                 }
             }
@@ -47,884 +35,884 @@
     </script>
 
     <style>
-        /* BARREIRA DE SEGURANÇA (Anti-cópia) */
+        /* Ocultar barra de rolagem mas permitir rolagem */
+        ::-webkit-scrollbar { display: none; }
+        * { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Prevenir cópia e seleção de texto */
         body {
-            -webkit-user-select: none; -ms-user-select: none; user-select: none;
-            -webkit-touch-callout: none; background-color: #0A0A0A; color: #FFFFFF;
-            -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            background-color: #000;
         }
-        img { pointer-events: none; } 
 
-        /* SCROLLBAR CUSTOMIZADA */
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* Emulador Mobile no Desktop */
+        /* Container que simula um app mobile no desktop */
         .app-container {
-            max-width: 480px; margin: 0 auto; min-height: 100vh; min-height: 100dvh;
-            background-color: #0A0A0A; position: relative;
-            box-shadow: 0 0 50px rgba(143, 227, 2, 0.05); display: flex; flex-direction: column;
+            width: 100%;
+            max-width: 430px; /* Tamanho do iPhone Pro Max */
+            margin: 0 auto;
+            background-color: #0a0a0a;
+            min-height: 100vh;
+            min-height: 100dvh;
+            position: relative;
             overflow: hidden;
+            box-shadow: 0 0 40px rgba(143, 227, 2, 0.1);
         }
 
         .glass-nav {
-            background: rgba(22, 22, 22, 0.90); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: env(safe-area-inset-bottom);
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid rgba(255,255,255,0.05);
         }
 
-        .bg-landing {
-            background: linear-gradient(to bottom, rgba(10,10,10,0.1) 0%, rgba(10,10,10,1) 90%), url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=800') center/cover;
+        /* Imagem placeholder para videos faltantes */
+        .media-placeholder {
+            background: linear-gradient(45deg, #161616, #222);
         }
-
-        .loader {
-            border: 3px solid rgba(143, 227, 2, 0.2); border-top: 3px solid #8FE302;
-            border-radius: 50%; width: 32px; height: 32px; animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .category-chip.active { background-color: #8FE302; color: #000; border-color: #8FE302; font-weight: bold; }
     </style>
 </head>
-<body class="antialiased font-sans">
+<body class="text-white h-screen overflow-hidden" oncontextmenu="return false;">
 
-    <div class="app-container">
+    <div class="app-container flex flex-col relative">
 
-        <!-- HEADER -->
-        <header class="sticky top-0 z-40 px-5 py-4 flex items-center justify-between bg-scanfit-dark/95 backdrop-blur-md border-b border-white/5">
-            <img src="logo.png" alt="ScanFit Logo" class="h-8 object-contain" onerror="this.src='https://placehold.co/150x50/0A0A0A/8FE302?text=ScanFit&font=Montserrat'">
-            <div class="flex items-center gap-2">
-                <span id="sync-text" class="text-[10px] text-gray-500 font-medium">Buscando...</span>
-                <div id="header-status" class="w-2.5 h-2.5 rounded-full bg-yellow-500 animate-pulse shadow-[0_0_8px_rgba(234,179,8,0.5)]"></div>
-            </div>
-        </header>
-
-        <!-- MAIN CONTENT -->
-        <main class="flex-1 overflow-y-auto no-scrollbar pb-24 relative" id="main-content">
+        <!-- ==========================================
+             TELA 1: LANDING PAGE (CAPA)
+             ========================================== -->
+        <div id="view-landing" class="flex flex-col h-full relative animate-fade-in z-10">
+            <!-- Background Image Escurecida -->
+            <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=800')] bg-cover bg-center opacity-40 mix-blend-luminosity"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-scanfit-dark via-scanfit-dark/80 to-transparent"></div>
             
-            <!-- TELA 1: LANDING PAGE -->
-            <div id="view-landing" class="h-full flex flex-col animate-fade-in">
-                <div class="h-[45vh] bg-landing relative flex items-end p-6">
-                    <div class="w-full">
-                        <div class="inline-block px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-full mb-3">
-                            <span class="text-scanfit-green text-[10px] font-bold uppercase tracking-wider flex items-center gap-2">
-                                <i class="fa-solid fa-bolt"></i> Tecnologia que conecta
-                            </span>
-                        </div>
-                        <h1 class="text-4xl font-extrabold text-white leading-tight mb-2">Treino com<br><span class="text-scanfit-green">Precisão.</span></h1>
-                    </div>
-                </div>
+            <div class="relative z-10 flex flex-col items-center justify-center h-full p-6 text-center">
+                <img src="logo.png" alt="ScanFit Logo" class="w-48 mb-4 drop-shadow-[0_0_15px_rgba(143,227,2,0.3)]" onerror="this.src='https://placehold.co/400x150/0a0a0a/8FE302?text=ScanFit+Logo'">
+                <h1 class="text-3xl font-extrabold tracking-tight mb-2">Seu movimento com <span class="text-scanfit-green">precisão.</span></h1>
+                <p class="text-gray-400 text-sm mb-10 max-w-[280px]">Escaneie, assista a execução correta e evolua com consistência.</p>
                 
-                <div class="p-6 space-y-6 flex-1 flex flex-col">
-                    <p class="text-gray-400 text-sm leading-relaxed">
-                        Encontre o exercício certo, assista à execução perfeita e monte sua rotina. Tudo na palma da sua mão.
-                    </p>
-                    
-                    <div class="grid grid-cols-2 gap-4">
-                        <div onclick="navigate('library')" class="bg-scanfit-card p-5 rounded-2xl border border-gray-800 flex flex-col items-center justify-center text-center cursor-pointer hover:border-scanfit-green/50 transition">
-                            <div class="w-12 h-12 rounded-full bg-scanfit-green/10 flex items-center justify-center mb-3">
-                                <i class="fa-solid fa-magnifying-glass text-xl text-scanfit-green"></i>
-                            </div>
-                            <h3 class="font-bold text-sm text-white">Explorar</h3>
-                            <p class="text-[10px] text-gray-500 mt-1">Buscar Exercícios</p>
-                        </div>
-                        <div onclick="navigate('workout')" class="bg-scanfit-card p-5 rounded-2xl border border-gray-800 flex flex-col items-center justify-center text-center cursor-pointer hover:border-scanfit-green/50 transition">
-                            <div class="w-12 h-12 rounded-full bg-scanfit-green/10 flex items-center justify-center mb-3">
-                                <i class="fa-solid fa-clipboard-list text-xl text-scanfit-green"></i>
-                            </div>
-                            <h3 class="font-bold text-sm text-white">Meu Treino</h3>
-                            <p class="text-[10px] text-gray-500 mt-1">Sua rotina salva</p>
-                        </div>
-                    </div>
+                <button onclick="navigate('library')" class="w-full bg-scanfit-green text-black font-bold text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(143,227,2,0.4)] transition-transform active:scale-95 flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-dumbbell"></i> Acessar Exercícios
+                </button>
+            </div>
+        </div>
 
-                    <div class="mt-auto pt-6 pb-2">
-                        <div class="bg-gradient-to-r from-scanfit-card to-scanfit-panel border border-gray-800 rounded-2xl p-4 flex items-center gap-4">
-                            <div class="text-3xl text-gray-600"><i class="fa-solid fa-qrcode"></i></div>
-                            <div>
-                                <h4 class="text-sm font-bold text-white">Escaneou um QR Code?</h4>
-                                <p class="text-xs text-gray-500">O exercício abrirá automaticamente.</p>
-                            </div>
-                        </div>
+        <!-- ==========================================
+             TELA 2: BIBLIOTECA (EXPLORAR)
+             ========================================== -->
+        <div id="view-library" class="hidden flex-col h-full bg-scanfit-dark pt-6 pb-20 relative animate-fade-in">
+            <div class="px-5 mb-4">
+                <h2 class="text-2xl font-extrabold mb-1">Explorar</h2>
+                <p class="text-xs text-gray-400">Encontre o exercício perfeito</p>
+            </div>
+
+            <!-- Busca -->
+            <div class="px-5 mb-4 relative">
+                <i class="fa-solid fa-search absolute left-9 top-3.5 text-gray-400"></i>
+                <input type="text" id="input-busca" oninput="aoDigitarBusca()" placeholder="Buscar exercício..." class="w-full bg-scanfit-card border border-gray-800 rounded-xl py-3 pl-11 pr-4 text-sm text-white focus:border-scanfit-green focus:outline-none placeholder-gray-600 shadow-inner">
+            </div>
+
+            <!-- Chips de Categorias -->
+            <div class="px-5 mb-4 overflow-x-auto no-scrollbar flex gap-2 pb-1">
+                <button onclick="setCategory('Todos')" class="category-chip active flex-shrink-0 bg-scanfit-green text-black px-4 py-1.5 rounded-full text-xs font-bold transition-colors">Todos</button>
+                <button onclick="setCategory('Peito')" class="category-chip flex-shrink-0 bg-scanfit-card text-gray-400 border border-gray-800 px-4 py-1.5 rounded-full text-xs font-semibold hover:text-white transition-colors">Peito</button>
+                <button onclick="setCategory('Costas')" class="category-chip flex-shrink-0 bg-scanfit-card text-gray-400 border border-gray-800 px-4 py-1.5 rounded-full text-xs font-semibold hover:text-white transition-colors">Costas</button>
+                <button onclick="setCategory('Pernas')" class="category-chip flex-shrink-0 bg-scanfit-card text-gray-400 border border-gray-800 px-4 py-1.5 rounded-full text-xs font-semibold hover:text-white transition-colors">Pernas</button>
+                <button onclick="setCategory('Ombros')" class="category-chip flex-shrink-0 bg-scanfit-card text-gray-400 border border-gray-800 px-4 py-1.5 rounded-full text-xs font-semibold hover:text-white transition-colors">Ombros</button>
+                <button onclick="setCategory('Braços')" class="category-chip flex-shrink-0 bg-scanfit-card text-gray-400 border border-gray-800 px-4 py-1.5 rounded-full text-xs font-semibold hover:text-white transition-colors">Braços</button>
+            </div>
+
+            <!-- Lista de Exercícios -->
+            <div class="flex-1 overflow-y-auto px-5">
+                <div id="lista-exercicios" class="space-y-3 pb-6">
+                    <!-- Preenchido via JS -->
+                    <div class="flex justify-center items-center h-20">
+                        <i class="fa-solid fa-circle-notch fa-spin text-scanfit-green text-2xl"></i>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- TELA 2: BIBLIOTECA (Netflix Style) -->
-            <div id="view-library" class="hidden flex-col animate-fade-in min-h-full bg-scanfit-dark">
-                <div class="sticky top-0 z-30 bg-scanfit-dark pt-4 pb-2 px-4 border-b border-gray-800/50">
-                    <h2 class="text-2xl font-extrabold mb-4 text-white">Biblioteca</h2>
-                    
-                    <!-- Search Bar -->
-                    <div class="relative mb-4">
-                        <i class="fa-solid fa-search absolute left-4 top-3.5 text-gray-400"></i>
-                        <input type="text" id="input-busca" onkeyup="filtrarBiblioteca()" placeholder="Buscar exercício ou máquina..." class="w-full bg-scanfit-card border border-gray-800 rounded-xl py-3 pl-11 pr-10 text-sm text-white focus:border-scanfit-green focus:ring-1 focus:ring-scanfit-green outline-none transition-all placeholder-gray-600 shadow-inner">
-                        <button onclick="document.getElementById('input-busca').value=''; filtrarBiblioteca();" class="absolute right-4 top-3.5 text-gray-500 hover:text-white">
-                            <i class="fa-solid fa-times-circle"></i>
-                        </button>
-                    </div>
-
-                    <!-- Horizontal Categories (Chips) -->
-                    <div class="flex overflow-x-auto no-scrollbar gap-2 pb-2" id="categories-container">
-                        <button onclick="setCategory('Todos')" class="category-chip active whitespace-nowrap px-4 py-1.5 rounded-full border border-gray-700 bg-scanfit-card text-gray-300 text-xs font-medium transition-colors" data-cat="Todos">Todos</button>
-                        <!-- Gerado dinamicamente via JS -->
-                    </div>
+        <!-- ==========================================
+             TELA 3: MEU TREINO (SALVO NO DISPOSITIVO)
+             ========================================== -->
+        <div id="view-workout" class="hidden flex-col h-full bg-scanfit-dark pt-6 pb-20 relative animate-fade-in">
+            <div class="px-5 mb-6 flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-extrabold mb-1">Meu Treino</h2>
+                    <p class="text-xs text-gray-400">Salvo no seu celular</p>
                 </div>
-                
-                <div class="p-4">
-                    <div id="library-count" class="text-xs text-gray-500 mb-3 font-medium uppercase tracking-wider">Carregando...</div>
-                    <div id="library-list" class="space-y-3">
-                        <!-- Lista de exercícios preenchida via JS -->
-                    </div>
-                </div>
+                <button onclick="limparTreino()" class="text-red-500 bg-red-500/10 px-3 py-1.5 rounded-lg text-xs font-bold border border-red-500/20 active:scale-95 transition-transform">
+                    <i class="fa-solid fa-trash mr-1"></i> Limpar
+                </button>
             </div>
 
-            <!-- TELA 3: MEU TREINO -->
-            <div id="view-workout" class="hidden flex-col p-5 animate-fade-in">
-                <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h2 class="text-2xl font-extrabold text-white">Meu Treino</h2>
-                        <p class="text-xs text-gray-400 mt-1">Salvo no seu celular</p>
-                    </div>
-                    <button onclick="limparTreino()" class="w-8 h-8 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500/20 transition">
-                        <i class="fa-solid fa-trash-can text-sm"></i>
-                    </button>
-                </div>
-                
-                <div id="workout-list" class="space-y-3">
+            <div class="flex-1 overflow-y-auto px-5">
+                <div id="lista-treino" class="space-y-3 pb-6">
                     <!-- Preenchido via JS -->
                 </div>
+                
+                <!-- Estado Vazio -->
+                <div id="workout-empty" class="hidden flex-col items-center justify-center text-center mt-20 opacity-50">
+                    <i class="fa-regular fa-folder-open text-4xl mb-3 text-gray-500"></i>
+                    <p class="text-sm text-gray-400 max-w-[200px]">Seu treino está vazio. Adicione exercícios navegando pela biblioteca.</p>
+                </div>
+            </div>
+        </div>
 
-                <div id="workout-empty" class="text-center py-16 hidden flex-col items-center justify-center">
-                    <div class="w-20 h-20 bg-scanfit-card rounded-full flex items-center justify-center mb-4 border border-gray-800">
-                        <i class="fa-solid fa-dumbbell text-3xl text-gray-600"></i>
+        <!-- ==========================================
+             TELA 4: PERFIL E IMC
+             ========================================== -->
+        <div id="view-profile" class="hidden flex-col h-full bg-scanfit-dark pt-6 pb-20 relative animate-fade-in overflow-y-auto">
+            <div class="px-5 mb-6 flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-white">Meu Perfil</h2>
+                    <p class="text-xs text-gray-400 mt-1">Acompanhe sua evolução</p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-scanfit-card border border-scanfit-green flex items-center justify-center shadow-[0_0_10px_rgba(143,227,2,0.2)]">
+                    <i class="fa-solid fa-user-astronaut text-scanfit-green text-xl"></i>
+                </div>
+            </div>
+
+            <div class="px-5 space-y-4">
+                <div class="bg-scanfit-card p-5 rounded-2xl border border-gray-800 space-y-4 shadow-sm">
+                    <!-- Dados Pessoais -->
+                    <div>
+                        <label class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1 block">Seu Nome</label>
+                        <input type="text" id="prof-nome" placeholder="Como quer ser chamado?" class="w-full bg-black border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:border-scanfit-green focus:outline-none transition-colors">
                     </div>
-                    <h3 class="text-lg font-bold text-white mb-2">Treino Vazio</h3>
-                    <p class="text-gray-400 text-sm mb-6 max-w-[250px]">Você ainda não adicionou nenhum exercício à sua rotina diária.</p>
-                    <button onclick="navigate('library')" class="bg-scanfit-green text-black px-6 py-3 rounded-full font-bold text-sm shadow-[0_0_15px_rgba(143,227,2,0.3)]">
-                        Explorar Exercícios
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1 block">Idade</label>
+                            <input type="number" id="prof-idade" placeholder="Anos" class="w-full bg-black border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:border-scanfit-green focus:outline-none transition-colors">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1 block">Objetivo</label>
+                            <select id="prof-objetivo" class="w-full bg-black border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:border-scanfit-green focus:outline-none transition-colors appearance-none">
+                                <option value="Hipertrofia">Hipertrofia</option>
+                                <option value="Emagrecimento">Emagrecimento</option>
+                                <option value="Condicionamento">Condicionamento</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr class="border-gray-800 my-2">
+
+                    <!-- Medidas para IMC -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1 block">Peso (kg)</label>
+                            <input type="number" id="prof-peso" placeholder="Ex: 75" oninput="calcularIMC()" class="w-full bg-black border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:border-scanfit-green focus:outline-none transition-colors">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1 block">Altura (cm)</label>
+                            <input type="number" id="prof-altura" placeholder="Ex: 175" oninput="calcularIMC()" class="w-full bg-black border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:border-scanfit-green focus:outline-none transition-colors">
+                        </div>
+                    </div>
+
+                    <button onclick="salvarPerfil()" class="w-full bg-scanfit-green text-black font-bold py-3 mt-2 rounded-xl text-sm active:scale-95 transition-transform">
+                        Salvar Dados
+                    </button>
+                </div>
+
+                <!-- Cartão de IMC -->
+                <div id="imc-result-container" class="hidden bg-gradient-to-br from-scanfit-card to-gray-900 p-5 rounded-2xl border border-gray-800 shadow-xl relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-scanfit-green/10 rounded-full blur-2xl"></div>
+                    
+                    <div class="flex justify-between items-center relative z-10">
+                        <div>
+                            <h3 class="text-sm font-bold text-white mb-1">Seu Índice (IMC)</h3>
+                            <span id="imc-status" class="text-[10px] font-bold uppercase tracking-wider text-scanfit-green">Normal</span>
+                        </div>
+                        <div class="flex items-end gap-1">
+                            <span id="imc-valor" class="text-3xl font-extrabold text-white">0.0</span>
+                            <span class="text-xs text-gray-500 font-medium mb-1">kg/m²</span>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full h-1.5 bg-gray-800 rounded-full mt-4 flex overflow-hidden">
+                        <div class="w-[20%] h-full bg-blue-500"></div>
+                        <div class="w-[30%] h-full bg-scanfit-green"></div>
+                        <div class="w-[20%] h-full bg-yellow-500"></div>
+                        <div class="w-[30%] h-full bg-red-500"></div>
+                    </div>
+                    <div class="flex justify-between text-[8px] text-gray-500 uppercase font-bold mt-1">
+                        <span>Abaixo</span>
+                        <span>Normal</span>
+                        <span>Sobre</span>
+                        <span>Obesidade</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botão Secreto para Configuração do Admin -->
+            <div class="mt-8 text-center pb-6">
+                <button onclick="navigate('admin')" class="text-[10px] text-gray-700 font-bold uppercase tracking-widest hover:text-gray-500 transition-colors">
+                    <i class="fa-solid fa-lock mr-1"></i> Acesso Restrito
+                </button>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             TELA 5: VISUALIZAÇÃO DO EXERCÍCIO
+             ========================================== -->
+        <div id="view-exercise" class="hidden flex-col h-full bg-scanfit-dark absolute inset-0 z-40 animate-slide-up">
+            
+            <!-- Botão Voltar Fixo e Transparente -->
+            <button onclick="voltar()" class="absolute top-4 left-4 z-50 w-10 h-10 bg-black/50 backdrop-blur border border-white/10 rounded-full flex items-center justify-center text-white active:scale-90 transition-transform">
+                <i class="fa-solid fa-chevron-left pr-1"></i>
+            </button>
+
+            <!-- Área de Mídia (Vídeo/GIF) -->
+            <div class="relative w-full h-[35%] bg-black flex items-center justify-center border-b border-gray-800">
+                <div id="media-container" class="absolute inset-0 w-full h-full media-placeholder flex items-center justify-center">
+                    <i class="fa-solid fa-circle-notch fa-spin text-scanfit-green text-3xl"></i>
+                </div>
+                
+                <!-- Badge Watermark -->
+                <div class="absolute top-4 right-4 bg-black/60 backdrop-blur px-3 py-1 rounded-full border border-white/10 flex items-center gap-1.5 shadow-lg">
+                    <i class="fa-solid fa-shield-halved text-scanfit-green text-[10px]"></i>
+                    <span class="text-[9px] font-bold tracking-wider text-white">SCANFIT</span>
+                </div>
+            </div>
+
+            <!-- Conteúdo do Exercício -->
+            <div class="flex-1 overflow-y-auto px-5 pt-5 pb-24 relative z-10 bg-scanfit-dark -mt-4 rounded-t-3xl shadow-[0_-10px_20px_rgba(0,0,0,0.5)]">
+                
+                <div class="flex gap-2 flex-wrap mb-3">
+                    <span id="ex-grupo" class="px-3 py-1 bg-scanfit-card border border-gray-800 text-[10px] font-bold text-scanfit-green rounded-md uppercase tracking-wider shadow-sm"></span>
+                </div>
+
+                <div class="flex justify-between items-start gap-2 mb-6">
+                    <h2 id="ex-nome" class="text-2xl font-extrabold text-white leading-tight"></h2>
+                    <button id="btn-add-workout" onclick="toggleTreinoAtual()" class="flex-shrink-0 w-10 h-10 rounded-xl bg-scanfit-card border border-gray-800 text-gray-400 flex items-center justify-center shadow-sm active:scale-90 transition-all">
+                        <i class="fa-solid fa-plus text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Execução -->
+                <div class="space-y-4 mb-6">
+                    <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                        <i class="fa-solid fa-bullseye text-scanfit-green"></i> Execução Correta
+                    </h3>
+                    <ul id="ex-instrucoes" class="space-y-3">
+                        <!-- Injetado via JS -->
+                    </ul>
+                </div>
+
+                <!-- Dicas Importantes (Opcional) -->
+                <div id="ex-tips-container" class="hidden">
+                    <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
+                        <h4 class="text-[10px] font-bold text-yellow-500 mb-2 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Dicas e Postura
+                        </h4>
+                        <p id="ex-tips" class="text-yellow-100/80 text-xs leading-relaxed"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botão Flutuante Inferior para alternar Mídia -->
+            <div class="absolute bottom-6 left-0 w-full px-5 z-50">
+                <div class="bg-scanfit-card/90 backdrop-blur-md border border-gray-800 rounded-2xl p-1.5 flex shadow-2xl">
+                    <button id="btn-video" onclick="alternarMidia('video')" class="flex-1 py-3 rounded-xl text-sm font-bold bg-scanfit-green text-black transition-all shadow-md">
+                        <i class="fa-brands fa-youtube mr-1"></i> Vídeo
+                    </button>
+                    <button id="btn-gif" onclick="alternarMidia('gif')" class="flex-1 py-3 rounded-xl text-sm font-bold text-gray-400 hover:text-white transition-all">
+                        <i class="fa-solid fa-bolt mr-1"></i> GIF Rápido
                     </button>
                 </div>
             </div>
+        </div>
 
-            <!-- TELA 4: EXERCÍCIO INDIVIDUAL -->
-            <div id="view-exercise" class="hidden flex-col bg-scanfit-dark min-h-full pb-10">
-                
-                <!-- Media Player Fixo no topo -->
-                <div class="sticky top-0 z-30 bg-scanfit-dark border-b border-gray-800 shadow-2xl">
-                    <div class="absolute top-4 left-4 z-40">
-                        <button onclick="voltar()" class="w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-white flex items-center justify-center hover:bg-black/80 transition">
-                            <i class="fa-solid fa-arrow-left"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="w-full bg-black relative aspect-video flex items-center justify-center" id="ex-media-container">
-                        <div class="loader"></div>
-                    </div>
-                </div>
-
-                <div class="p-5 animate-slide-up">
-                    <div class="flex justify-between items-start mb-6">
-                        <div>
-                            <span id="ex-muscle" class="text-scanfit-green text-[10px] font-bold uppercase tracking-widest mb-1 block">...</span>
-                            <h1 id="ex-title" class="text-2xl font-extrabold text-white leading-tight">Carregando...</h1>
-                        </div>
-                        <button id="btn-add-treino" onclick="toggleTreinoAtual()" class="flex-shrink-0 w-12 h-12 rounded-full bg-scanfit-card border border-gray-700 flex items-center justify-center transition-all duration-300 ml-4">
-                            <i class="fa-solid fa-bookmark text-gray-400 text-lg"></i>
-                        </button>
-                    </div>
-
-                    <!-- Toggle Tipo de Mídia -->
-                    <div class="flex p-1 bg-scanfit-card rounded-xl border border-gray-800 mb-6 relative">
-                        <div id="toggle-indicator" class="absolute w-1/2 h-[calc(100%-8px)] top-1 left-1 bg-gray-800 rounded-lg transition-transform duration-300 ease-in-out"></div>
-                        <button onclick="setMediaType('video')" id="tab-video" class="flex-1 py-2 text-sm font-semibold z-10 text-white transition-colors flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-play"></i> Vídeo
-                        </button>
-                        <button onclick="setMediaType('gif')" id="tab-gif" class="flex-1 py-2 text-sm font-semibold z-10 text-gray-400 transition-colors flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-bolt"></i> GIF Rápido
-                        </button>
-                    </div>
-
-                    <div class="space-y-6">
-                        <div>
-                            <h2 class="text-sm font-bold text-white mb-3 uppercase tracking-wider flex items-center gap-2">
-                                <i class="fa-solid fa-crosshairs text-scanfit-green"></i> Execução Correta
-                            </h2>
-                            <ul id="ex-steps" class="space-y-3"></ul>
-                        </div>
-
-                        <div id="ex-tips-container" class="hidden">
-                            <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4">
-                                <h2 class="text-sm font-bold text-yellow-500 mb-3 uppercase tracking-wider flex items-center gap-2">
-                                    <i class="fa-solid fa-lightbulb"></i> Dicas Importantes
-                                </h2>
-                                <ul id="ex-tips" class="space-y-2 text-yellow-100/80 text-sm"></ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <!-- ==========================================
+             TELA 6: ADMIN (PROTEGIDA POR SENHA)
+             ========================================== -->
+        <div id="view-admin" class="hidden flex-col h-full bg-scanfit-dark pt-6 pb-20 relative animate-fade-in z-30">
+            <div class="px-5 mb-6 flex items-center gap-3">
+                <button onclick="navigate('profile')" class="w-8 h-8 bg-scanfit-card rounded-full flex items-center justify-center text-gray-400">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <h2 class="text-xl font-extrabold text-white">Configurações do Sistema</h2>
             </div>
 
-            <!-- TELA 5: ADMIN (Protegida) -->
-            <div id="view-admin" class="hidden flex-col p-6 animate-fade-in">
-                
-                <!-- Login -->
-                <div id="admin-login" class="flex flex-col items-center justify-center py-16 h-full">
-                    <div class="w-16 h-16 rounded-full bg-scanfit-card border border-gray-800 flex items-center justify-center mb-6">
-                        <i class="fa-solid fa-lock text-2xl text-gray-400"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold text-white mb-2">Acesso Restrito</h2>
-                    <p class="text-sm text-gray-500 mb-8 text-center max-w-[250px]">Área de configuração do banco de dados.</p>
-                    
-                    <input type="password" id="admin-pass" placeholder="Senha do Admin" class="w-full bg-scanfit-card border border-gray-800 rounded-xl py-4 px-4 text-center text-white focus:border-scanfit-green focus:outline-none focus:ring-1 focus:ring-scanfit-green mb-4 transition-all">
-                    <button onclick="verificarSenha()" class="w-full bg-scanfit-green text-black font-bold py-4 rounded-xl shadow-[0_0_15px_rgba(143,227,2,0.3)]">Acessar Painel</button>
+            <!-- Camada de Autenticação -->
+            <div id="admin-auth" class="px-5 flex flex-col items-center justify-center mt-10">
+                <div class="w-16 h-16 bg-scanfit-card rounded-2xl flex items-center justify-center border border-gray-800 mb-4 shadow-lg">
+                    <i class="fa-solid fa-lock text-scanfit-green text-2xl"></i>
                 </div>
-
-                <!-- Painel Config -->
-                <div id="admin-panel" class="hidden flex-col h-full">
-                    <div class="mb-6">
-                        <h2 class="text-2xl font-bold text-white">Configurações</h2>
-                        <p class="text-xs text-gray-400 mt-1">Conexão com Google Sheets</p>
-                    </div>
-
-                    <div class="bg-scanfit-card p-5 rounded-2xl border border-gray-800 mb-6">
-                        <label class="block text-sm font-bold text-white mb-2"><i class="fa-brands fa-google-drive text-scanfit-green mr-2"></i>URL da Planilha</label>
-                        <p class="text-[10px] text-gray-500 mb-4 leading-relaxed">Cole o link completo da sua planilha (não precisa publicar na web, apenas deixe o compartilhamento como "Qualquer pessoa com o link pode ler").</p>
-                        
-                        <textarea id="admin-url-input" rows="3" class="w-full bg-black border border-gray-700 rounded-xl p-3 text-xs text-gray-300 focus:border-scanfit-green focus:outline-none focus:ring-1 focus:ring-scanfit-green mb-4 break-all"></textarea>
-                        
-                        <button onclick="salvarPlanilhaAdmin()" class="w-full bg-scanfit-green text-black font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-cloud-arrow-down"></i> Salvar e Sincronizar
-                        </button>
-                    </div>
-                    
-                    <button onclick="sairAdmin()" class="mt-auto w-full bg-transparent border border-gray-800 text-gray-400 font-medium py-3 rounded-xl text-sm hover:text-white transition-colors">
-                        Sair do Painel
-                    </button>
-                </div>
+                <h3 class="font-bold mb-4">Acesso Restrito</h3>
+                <input type="password" id="admin-password" placeholder="Digite a senha" class="w-full bg-black border border-gray-700 rounded-xl px-4 py-3 text-sm text-center text-white mb-4 focus:border-scanfit-green outline-none">
+                <button onclick="checkAdminPassword()" class="w-full bg-scanfit-green text-black font-bold py-3 rounded-xl shadow-lg">Entrar</button>
             </div>
 
-        </main>
+            <!-- Painel Administrativo -->
+            <div id="admin-panel" class="hidden px-5 space-y-6">
+                <div class="bg-scanfit-card p-5 rounded-2xl border border-gray-800 shadow-sm">
+                    <h3 class="text-sm font-bold mb-2 flex items-center gap-2"><i class="fa-solid fa-database text-scanfit-green"></i> Conexão Google Sheets</h3>
+                    <p class="text-[10px] text-gray-400 mb-4">Insira o link completo da sua planilha. O sistema usará a API do Google para baixar os exercícios.</p>
+                    <input type="text" id="admin-url" placeholder="Cole a URL do Google Sheets aqui..." class="w-full bg-black border border-gray-700 rounded-xl px-3 py-3 text-xs text-white mb-3 outline-none">
+                    <button onclick="salvarURLPlanilha()" class="w-full bg-scanfit-green text-black text-sm font-bold py-2.5 rounded-lg active:scale-95">Salvar e Sincronizar</button>
+                </div>
+                
+                <div class="bg-scanfit-card p-4 rounded-xl border border-gray-800 flex justify-between items-center">
+                    <span class="text-xs font-semibold text-gray-400">Status do Banco Local:</span>
+                    <span id="admin-db-status" class="text-xs font-bold text-scanfit-green bg-scanfit-green/10 px-2 py-1 rounded">0 exercícios</span>
+                </div>
+            </div>
+        </div>
 
-        <!-- BOTTOM NAVIGATION BAR -->
-        <nav class="glass-nav absolute bottom-0 w-full z-40 flex justify-around items-center px-2 py-2" id="bottom-nav">
+        <!-- ==========================================
+             BOTTOM NAVIGATION BAR
+             ========================================== -->
+        <nav id="bottom-nav" class="glass-nav absolute bottom-0 w-full z-20 flex justify-around items-center px-2 py-2 h-[72px] pb-5">
             <button onclick="navigate('landing')" class="nav-btn flex flex-col items-center gap-1 w-1/4 text-scanfit-green" data-target="landing">
-                <i class="fa-solid fa-compass text-[20px] mb-0.5"></i>
-                <span class="text-[9px] font-bold tracking-wide">Início</span>
+                <i class="fa-solid fa-compass text-[20px]"></i>
+                <span class="text-[9px] font-bold tracking-wide mt-0.5">Início</span>
             </button>
-            <button onclick="navigate('library')" class="nav-btn flex flex-col items-center gap-1 w-1/4 text-gray-500 hover:text-gray-300 transition-colors" data-target="library">
-                <i class="fa-solid fa-layer-group text-[20px] mb-0.5"></i>
-                <span class="text-[9px] font-bold tracking-wide">Explorar</span>
+            <button onclick="navigate('library')" class="nav-btn flex flex-col items-center gap-1 w-1/4 text-gray-500 hover:text-white transition-colors" data-target="library">
+                <i class="fa-solid fa-layer-group text-[20px]"></i>
+                <span class="text-[9px] font-bold tracking-wide mt-0.5">Explorar</span>
             </button>
-            <button onclick="navigate('workout')" class="nav-btn flex flex-col items-center gap-1 w-1/4 text-gray-500 hover:text-gray-300 transition-colors relative" data-target="workout">
-                <i class="fa-solid fa-clipboard-list text-[20px] mb-0.5"></i>
-                <span class="text-[9px] font-bold tracking-wide">Treino</span>
+            <button onclick="navigate('workout')" class="nav-btn flex flex-col items-center gap-1 w-1/4 text-gray-500 hover:text-white transition-colors relative" data-target="workout">
+                <i class="fa-solid fa-clipboard-list text-[20px]"></i>
+                <span class="text-[9px] font-bold tracking-wide mt-0.5">Treino</span>
+                <!-- Badge -->
                 <span id="badge-treino" class="absolute top-0 right-3 bg-scanfit-green text-black text-[9px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center scale-0 transition-transform duration-300">0</span>
             </button>
-            <button onclick="navigate('admin')" class="nav-btn flex flex-col items-center gap-1 w-1/4 text-gray-700 hover:text-gray-400 transition-colors" data-target="admin">
-                <i class="fa-solid fa-gear text-[20px] mb-0.5"></i>
-                <span class="text-[9px] font-bold tracking-wide">Ajustes</span>
+            <button onclick="navigate('profile')" class="nav-btn flex flex-col items-center gap-1 w-1/4 text-gray-500 hover:text-white transition-colors" data-target="profile">
+                <i class="fa-solid fa-user text-[20px]"></i>
+                <span class="text-[9px] font-bold tracking-wide mt-0.5">Perfil</span>
             </button>
         </nav>
 
-        <!-- TOAST NOTIFICATION -->
-        <div id="toast" class="fixed top-24 left-1/2 transform -translate-x-1/2 bg-gray-900 border border-gray-700 text-white px-5 py-3 rounded-full shadow-2xl z-50 -translate-y-10 opacity-0 transition-all duration-300 flex items-center gap-3 max-w-[90%] pointer-events-none">
-            <i id="toast-icon" class="fa-solid fa-circle-check text-scanfit-green text-base"></i>
-            <span id="toast-msg" class="text-xs font-semibold whitespace-nowrap overflow-hidden text-ellipsis"></span>
+        <!-- TOAST DE NOTIFICAÇÃO -->
+        <div id="toast" class="fixed top-10 left-1/2 transform -translate-x-1/2 bg-scanfit-card border border-gray-700 text-white px-5 py-3 rounded-full shadow-2xl z-[100] -translate-y-24 opacity-0 transition-all duration-300 flex items-center gap-2">
+            <i id="toast-icon" class="fa-solid fa-check-circle text-scanfit-green"></i>
+            <span id="toast-msg" class="text-xs font-bold tracking-wide">Sucesso</span>
         </div>
 
     </div>
 
+    <!-- SCRIPTS -->
     <script>
         /* ==========================================
-           SEGURANÇA (Anti-cópia)
+           VARIÁVEIS GLOBAIS E ESTADO
            ========================================== */
-        document.addEventListener('contextmenu', event => event.preventDefault()); 
-        document.onkeydown = function(e) {
-            if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || (e.ctrlKey && e.keyCode == 85)) {
-                return false;
-            }
-        };
-
-        /* ==========================================
-           ESTADO DA APLICAÇÃO
-           ========================================== */
-        // Formato gviz/tq para ler planilhas do Google facilmente (sem precisar de "Publicar na Web")
-        const defaultCSV = "https://docs.google.com/spreadsheets/d/1c9-_V_6F6ANWPHu5Xvheg-psEPEPVB_4FVy7riPXqtI/gviz/tq?tqx=out:csv&gid=390283479";
-        
-        let planilhaUrlOriginal = localStorage.getItem('scanfit_sheets_url') || "https://docs.google.com/spreadsheets/d/1c9-_V_6F6ANWPHu5Xvheg-psEPEPVB_4FVy7riPXqtI/edit#gid=390283479";
-        
         let dbExercicios = [];
-        let categories = new Set();
-        let currentCategory = 'Todos';
-        
         let treinoSalvo = JSON.parse(localStorage.getItem('scanfit_treino')) || [];
+        let perfilDados = JSON.parse(localStorage.getItem('scanfit_perfil')) || {};
         let exercicioAtual = null;
         let currentMediaType = 'video';
+        let currentCategory = 'Todos';
         let currentView = 'landing';
-        let navigationHistory = []; // Para botão voltar inteligente
+        let debounceTimer;
+
+        // URL Pré-Configurada com a sua Planilha via Google Visualization API
+        const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/1c9-_V_6F6ANWPHu5Xvheg-psEPEPVB_4FVy7riPXqtI/gviz/tq?tqx=out:json&gid=390283479";
+        
+        // Banco de Dados Secundário Anti-Falhas
+        const MOCK_DB = [
+            { id: "supino-reto", nome: "Supino Reto com Barra", grupo: "Peito", video: "https://www.youtube.com/embed/sqOw2Y6uDWQ", gif: "", execucao: "Deite-se com as costas bem apoiadas no banco.;Segure a barra com as mãos um pouco mais largas que os ombros.;Desça a barra controladamente até encostar levemente no peito.;Empurre a barra de volta à posição inicial estendendo os braços.", dicas: "Mantenha os pés firmes no chão.;Não descole o quadril do banco durante o movimento.;Contraia o abdômen para proteger a lombar." },
+            { id: "puxada-frente", nome: "Puxada Frontal Polia", grupo: "Costas", video: "https://www.youtube.com/embed/CAwf7n6Luuc", gif: "", execucao: "Sente-se no aparelho e ajuste o apoio de pernas.;Segure a barra com pegada aberta.;Puxe a barra em direção ao peito, estufando o tórax.;Retorne controladamente estendendo os braços.", dicas: "Não use o peso do corpo para puxar a barra.;Foque em juntar as escápulas." },
+            { id: "leg-press-45", nome: "Leg Press 45º", grupo: "Pernas", video: "https://www.youtube.com/embed/Wz3A-n-Gv18", gif: "", execucao: "Sente-se no aparelho e apoie bem a lombar no encosto.;Coloque os pés na plataforma na largura dos ombros.;Destrave o peso e desça os joelhos até formarem um ângulo de 90º.;Empurre a plataforma de volta, sem esticar totalmente os joelhos.", dicas: "Não deixe os joelhos entrarem (valgo dinâmico).;Mantenha toda a sola do pé na plataforma." }
+        ];
 
         /* ==========================================
-           INICIALIZAÇÃO
+           INICIALIZAÇÃO DO APLICATIVO
            ========================================== */
         document.addEventListener('DOMContentLoaded', () => {
             atualizarBadgeTreino();
-            carregarDadosPlanilha().then(() => {
-                // Roteamento via QR Code (Ex: site.com/?id=supino-reto)
-                const urlParams = new URLSearchParams(window.location.search);
-                const idParam = urlParams.get('id');
-                
-                if (idParam) {
-                    abrirExercicio(idParam);
-                } else {
-                    navigate('landing');
-                }
-            });
+            carregarPerfilUI();
+            
+            // 1. Tenta carregar do Cache Local para abertura instantânea (0 segundos)
+            const cacheData = localStorage.getItem('scanfit_db_cache');
+            if (cacheData) {
+                dbExercicios = JSON.parse(cacheData);
+                renderizarBiblioteca();
+            } else {
+                dbExercicios = MOCK_DB; // Fallback imediato
+                renderizarBiblioteca();
+            }
+
+            // 2. Busca dados frescos da Planilha em background
+            sincronizarGoogleSheets();
+
+            // 3. Lê o QR Code pela URL (ex: ?id=supino-reto)
+            const urlParams = new URLSearchParams(window.location.search);
+            const qrId = urlParams.get('id');
+            if (qrId) {
+                // Aguarda 500ms para a animação da capa antes de abrir
+                setTimeout(() => abrirExercicio(qrId), 500);
+            }
         });
 
         /* ==========================================
-           ROTEAMENTO E NAVEGAÇÃO
+           MOTOR DE DADOS (GOOGLE SHEETS GViz API)
            ========================================== */
-        function navigate(viewId, pushToHistory = true) {
-            if (pushToHistory && currentView !== viewId) {
-                navigationHistory.push(currentView);
-            }
+        async function sincronizarGoogleSheets() {
+            let sheetUrl = localStorage.getItem('scanfit_sheet_url') || DEFAULT_SHEET_URL;
             
+            // Ajusta URL padrão do Sheets para URL da API Gviz caso o admin tenha colado errado
+            if (sheetUrl.includes('/edit') || sheetUrl.includes('export?format=csv')) {
+                const matchId = sheetUrl.match(/\/d\/(.*?)\//);
+                const matchGid = sheetUrl.match(/gid=([0-9]+)/);
+                if (matchId) {
+                    sheetUrl = `https://docs.google.com/spreadsheets/d/${matchId[1]}/gviz/tq?tqx=out:json`;
+                    if (matchGid) sheetUrl += `&gid=${matchGid[1]}`;
+                }
+            }
+
+            try {
+                const response = await fetch(sheetUrl);
+                const text = await response.text();
+                
+                // O Gviz retorna uma string como: /*O_o*/ google.visualization.Query.setResponse({ JSON })
+                // Precisamos limpar isso para ler o JSON real
+                const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+                const data = JSON.parse(jsonString);
+                
+                const table = data.table;
+                const columns = table.cols.map(c => c.label ? c.label.toLowerCase().trim() : '');
+                
+                // Mapemento Inteligente de Colunas (para perdoar erros de digitação na planilha)
+                const idxId = columns.findIndex(c => c === 'id');
+                const idxNome = columns.findIndex(c => c.includes('nome') || c.includes('exerc'));
+                const idxGrupo = columns.findIndex(c => c.includes('grupo') || c.includes('muscul'));
+                const idxVideo = columns.findIndex(c => c.includes('video') || c.includes('vídeo'));
+                const idxGif = columns.findIndex(c => c.includes('gif'));
+                const idxExecucao = columns.findIndex(c => c.includes('exec') || c.includes('instru'));
+                const idxDicas = columns.findIndex(c => c.includes('dica') || c.includes('aviso'));
+
+                if (idxNome === -1) throw new Error("Coluna de Nome não encontrada.");
+
+                const novosDados = [];
+
+                table.rows.forEach(row => {
+                    if (!row.c || !row.c[idxNome] || !row.c[idxNome].v) return; // Pula linhas vazias
+
+                    const getVal = (idx) => (idx !== -1 && row.c[idx] && row.c[idx].v) ? row.c[idx].v.toString() : "";
+                    
+                    const nome = getVal(idxNome);
+                    let id = getVal(idxId);
+                    if (!id) {
+                        // Gera um ID limpo automaticamente (ex: "Supino Reto" -> "supino-reto")
+                        id = nome.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+                    }
+
+                    novosDados.push({
+                        id: id,
+                        nome: nome,
+                        grupo: getVal(idxGrupo) || 'Geral',
+                        video: getVal(idxVideo),
+                        gif: getVal(idxGif),
+                        execucao: getVal(idxExecucao),
+                        dicas: getVal(idxDicas)
+                    });
+                });
+
+                if (novosDados.length > 0) {
+                    dbExercicios = novosDados;
+                    localStorage.setItem('scanfit_db_cache', JSON.stringify(dbExercicios));
+                    renderizarBiblioteca();
+                    document.getElementById('admin-db-status').innerText = `${dbExercicios.length} exercícios`;
+                    console.log("ScanFit: Planilha sincronizada com sucesso!");
+                }
+
+            } catch (err) {
+                console.error("ScanFit: Falha ao carregar planilha. Usando cache ou mock.", err);
+            }
+        }
+
+        /* ==========================================
+           CONTROLE DE NAVEGAÇÃO E UI
+           ========================================== */
+        function navigate(viewId) {
             currentView = viewId;
             
-            // Oculta tudo e remove classes flex
-            ['view-landing', 'view-library', 'view-workout', 'view-exercise', 'view-admin'].forEach(id => {
+            // Oculta todas as views primárias
+            ['view-landing', 'view-library', 'view-workout', 'view-profile', 'view-admin', 'view-exercise'].forEach(id => {
                 const el = document.getElementById(id);
                 el.classList.add('hidden');
                 el.classList.remove('flex');
             });
             
-            // Mostra o alvo
+            // Mostra a selecionada
             const target = document.getElementById(`view-${viewId}`);
             target.classList.remove('hidden');
             target.classList.add('flex');
 
-            // Bottom Nav - Mostrar ou Esconder dependendo da tela
-            const bottomNav = document.getElementById('bottom-nav');
-            if (viewId === 'exercise') {
-                bottomNav.classList.add('hidden'); // Esconde nav na tela de exercício
+            // Atualiza menu inferior (se não for a view de exercício ou admin que escondem o menu)
+            const nav = document.getElementById('bottom-nav');
+            if (viewId === 'exercise' || viewId === 'admin' || viewId === 'landing') {
+                nav.style.display = 'none';
             } else {
-                bottomNav.classList.remove('hidden'); // Mostra no resto
-                
-                // Atualiza cores dos botões
+                nav.style.display = 'flex';
+                // Cor do botão ativo
                 document.querySelectorAll('.nav-btn').forEach(btn => {
                     if (btn.dataset.target === viewId) {
-                        btn.classList.remove('text-gray-500', 'text-gray-700');
+                        btn.classList.remove('text-gray-500');
                         btn.classList.add('text-scanfit-green');
                     } else {
                         btn.classList.remove('text-scanfit-green');
-                        btn.classList.add(btn.dataset.target === 'admin' ? 'text-gray-700' : 'text-gray-500');
+                        btn.classList.add('text-gray-500');
                     }
                 });
             }
 
-            // Ações específicas
-            if(viewId === 'workout') renderizarTreino();
-            if(viewId === 'library') renderizarBiblioteca(dbExercicios);
-            if(viewId === 'admin') document.getElementById('admin-url-input').value = planilhaUrlOriginal;
-            
-            // Scroll to top
-            document.getElementById('main-content').scrollTo(0, 0);
+            // Atualiza dados na tela correta
+            if (viewId === 'workout') renderizarTreino();
         }
 
         function voltar() {
-            if (navigationHistory.length > 0) {
-                const lastView = navigationHistory.pop();
-                navigate(lastView, false);
+            // Em vez de manipular histórico (que dá erro de segurança em iframes/blobs locais),
+            // fazemos uma rotação simples para a aba anterior lógica.
+            if(exercicioAtual) {
+                exercicioAtual = null;
+                document.getElementById('media-container').innerHTML = ''; // Limpa player
+                navigate('library');
             } else {
-                navigate('library', false);
+                navigate('landing');
             }
+        }
+
+        function mostrarToast(mensagem, icone = "fa-check-circle") {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = mensagem;
+            document.getElementById('toast-icon').className = `fa-solid ${icone} text-scanfit-green`;
             
-            // Limpa URL de forma segura (Prevenção de SecurityError em blobs/locais)
-            try {
-                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-                window.history.pushState({path:newUrl}, '', newUrl);
-            } catch (e) {
-                console.warn("Navegação de URL ignorada devido a restrições de segurança do ambiente (esperado em visualizações locais ou blobs).", e);
-            }
+            toast.classList.remove('-translate-y-24', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-24', 'opacity-0');
+            }, 3000);
         }
 
         /* ==========================================
-           CONEXÃO COM PLANILHA (INTELIGENTE)
+           SISTEMA DE BIBLIOTECA E FILTROS (OTIMIZADO)
            ========================================== */
-        // Converte URL normal do sheets para a API CSV
-        function getCsvExportUrl(url) {
-            try {
-                if(url.includes('gviz/tq')) return url; // Já está formatada
-                
-                const regex = /\/d\/([a-zA-Z0-9-_]+)/;
-                const match = url.match(regex);
-                if (match) {
-                    const sheetId = match[1];
-                    let gid = "0";
-                    const gidMatch = url.match(/gid=([0-9]+)/);
-                    if (gidMatch) gid = gidMatch[1];
-                    
-                    return `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=${gid}`;
-                }
-            } catch (e) {
-                console.error("Erro ao formatar URL", e);
-            }
-            return defaultCSV;
-        }
-
-        // Transforma string em um slug limpo para ID (ex: "Supino Reto!" -> "supino-reto")
-        function slugify(text) {
-            return text.toString().toLowerCase()
-                .replace(/[àÀáÁâÂãäÄÅå]/g, 'a').replace(/[èÈéÉêÊëË]/g, 'e').replace(/[ìÌíÍîÎïÏ]/g, 'i')
-                .replace(/[òÒóÓôÔõÕöÖ]/g, 'o').replace(/[ùÙúÚûÛüÜ]/g, 'u').replace(/[çÇ]/g, 'c')
-                .replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-').replace(/^-+/, '').replace(/-+$/, '');
-        }
-
-        async function carregarDadosPlanilha() {
-            const statusIndicator = document.getElementById('header-status');
-            const syncText = document.getElementById('sync-text');
-            statusIndicator.className = "w-2.5 h-2.5 rounded-full bg-yellow-500 animate-pulse shadow-[0_0_8px_rgba(234,179,8,0.5)]";
-            syncText.innerText = "Sincronizando...";
-            
-            const fetchUrl = getCsvExportUrl(planilhaUrlOriginal);
-
-            return new Promise((resolve) => {
-                Papa.parse(fetchUrl, {
-                    download: true,
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: function(results) {
-                        if (results.data && results.data.length > 0) {
-                            processarDadosPlanilha(results.data);
-                            statusIndicator.className = "w-2.5 h-2.5 rounded-full bg-scanfit-green shadow-[0_0_8px_rgba(143,227,2,0.5)]";
-                            syncText.innerText = "Online";
-                        } else {
-                            handleError("Planilha vazia ou inacessível", statusIndicator, syncText);
-                        }
-                        resolve();
-                    },
-                    error: function(err) {
-                        console.error(err);
-                        handleError("Falha na conexão", statusIndicator, syncText);
-                        resolve();
-                    }
-                });
-            });
-        }
-
-        function processarDadosPlanilha(data) {
-            dbExercicios = [];
-            categories.clear();
-
-            data.forEach(item => {
-                // Leitor Inteligente de Colunas (independente de como o usuário digitou no Sheets)
-                const getVal = (keys) => {
-                    for(let k of keys) {
-                        let foundKey = Object.keys(item).find(key => key.toLowerCase().trim() === k.toLowerCase());
-                        if(foundKey && item[foundKey]) return item[foundKey].trim();
-                    }
-                    return '';
-                };
-
-                const nomeRaw = getVal(['nome', 'exercicio', 'exercício', 'name']);
-                if(!nomeRaw) return; // Se não tem nome, ignora a linha
-
-                const grupoRaw = getVal(['grupo', 'musculo', 'músculo', 'categoria']) || 'Geral';
-                const splitChar = (text) => text.includes('|') ? '|' : (text.includes(';') ? ';' : '\n');
-                
-                const execucaoRaw = getVal(['execucao', 'execução', 'passos', 'instrucoes']);
-                const dicasRaw = getVal(['dicas', 'aviso', 'atenção', 'atencao']);
-
-                const ex = {
-                    id: getVal(['id', 'codigo', 'code']) || slugify(nomeRaw),
-                    nome: nomeRaw,
-                    grupo: grupoRaw,
-                    video: getVal(['video', 'vídeo', 'link video', 'youtube']),
-                    gif: getVal(['gif', 'imagem', 'link gif', 'animacao']),
-                    execucao: execucaoRaw ? execucaoRaw.split(splitChar(execucaoRaw)).map(s => s.trim()).filter(Boolean) : [],
-                    dicas: dicasRaw ? dicasRaw.split(splitChar(dicasRaw)).map(s => s.trim()).filter(Boolean) : []
-                };
-
-                dbExercicios.push(ex);
-                categories.add(ex.grupo);
-            });
-
-            if(dbExercicios.length === 0) {
-                // Fallback se não encontrou nada válido
-                carregarMockData();
-            } else {
-                renderCategoriesUI();
-            }
-        }
-
-        function handleError(msg, indicator, textEl) {
-            indicator.className = "w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]";
-            textEl.innerText = "Offline";
-            mostrarToast(msg, "fa-circle-xmark text-red-500");
-            carregarMockData();
-        }
-
-        function carregarMockData() {
-            dbExercicios = [
-                { id: "supino-reto", nome: "Supino Reto com Barra", grupo: "Peito", video: "https://www.youtube.com/embed/sqOw2Y6uDWQ?autoplay=1&mute=1", gif: "https://placehold.co/600x400/161616/8FE302?text=GIF+Supino+Reto", execucao: ["Deite-se no banco, olhos alinhados à barra.", "Segure a barra com pegada um pouco mais larga que os ombros.", "Desça a barra controladamente até o peito.", "Empurre a barra para cima, estendendo os braços."], dicas: ["Mantenha os pés firmes no chão.", "Não arqueie as costas excessivamente."] },
-                { id: "leg-press", nome: "Leg Press 45º", grupo: "Pernas", video: "", gif: "", execucao: ["Apoie bem as costas no banco.", "Desça controlando o peso."], dicas: ["Não estique totalmente os joelhos."] }
-            ];
-            categories.clear();
-            categories.add("Peito"); categories.add("Pernas");
-            renderCategoriesUI();
-        }
-
-        /* ==========================================
-           BIBLIOTECA & BUSCA (Netflix Style)
-           ========================================== */
-        function renderCategoriesUI() {
-            const container = document.getElementById('categories-container');
-            let html = `<button onclick="setCategory('Todos')" class="category-chip ${currentCategory === 'Todos' ? 'active' : ''} whitespace-nowrap px-4 py-1.5 rounded-full border border-gray-700 bg-scanfit-card text-gray-300 text-xs font-medium transition-colors" data-cat="Todos">Todos</button>`;
-            
-            // Ordena categorias alfabeticamente
-            Array.from(categories).sort().forEach(cat => {
-                const isActive = currentCategory === cat ? 'active' : '';
-                html += `<button onclick="setCategory('${cat}')" class="category-chip ${isActive} whitespace-nowrap px-4 py-1.5 rounded-full border border-gray-700 bg-scanfit-card text-gray-300 text-xs font-medium transition-colors" data-cat="${cat}">${cat}</button>`;
-            });
-            
-            container.innerHTML = html;
-        }
-
         function setCategory(cat) {
             currentCategory = cat;
-            // Atualiza visual dos chips
             document.querySelectorAll('.category-chip').forEach(el => {
-                if(el.dataset.cat === cat) {
-                    el.classList.add('active');
-                    el.classList.remove('bg-scanfit-card', 'text-gray-300');
+                if(el.innerText === cat) {
+                    el.classList.remove('bg-scanfit-card', 'text-gray-400', 'border-gray-800');
+                    el.classList.add('bg-scanfit-green', 'text-black');
                 } else {
-                    el.classList.remove('active');
-                    el.classList.add('bg-scanfit-card', 'text-gray-300');
+                    el.classList.add('bg-scanfit-card', 'text-gray-400', 'border-gray-800');
+                    el.classList.remove('bg-scanfit-green', 'text-black');
                 }
             });
-            filtrarBiblioteca();
+            renderizarBiblioteca();
         }
 
-        function filtrarBiblioteca() {
+        function aoDigitarBusca() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(renderizarBiblioteca, 300); // Debounce de 300ms
+        }
+
+        function renderizarBiblioteca() {
             const termo = document.getElementById('input-busca').value.toLowerCase();
+            const container = document.getElementById('lista-exercicios');
             
             let filtrados = dbExercicios;
             
-            // Filtro por Categoria
             if (currentCategory !== 'Todos') {
-                filtrados = filtrados.filter(ex => ex.grupo === currentCategory);
+                filtrados = filtrados.filter(ex => ex.grupo.toLowerCase().includes(currentCategory.toLowerCase()));
             }
-            
-            // Filtro por Texto
             if (termo) {
-                filtrados = filtrados.filter(ex => 
-                    ex.nome.toLowerCase().includes(termo) || 
-                    ex.grupo.toLowerCase().includes(termo)
-                );
+                filtrados = filtrados.filter(ex => ex.nome.toLowerCase().includes(termo) || ex.grupo.toLowerCase().includes(termo));
             }
-            
-            renderizarBiblioteca(filtrados);
-        }
 
-        function renderizarBiblioteca(dados) {
-            const container = document.getElementById('library-list');
-            const countEl = document.getElementById('library-count');
-            container.innerHTML = '';
-            
-            countEl.innerText = `${dados.length} exercícios encontrados`;
-
-            if(dados.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-10">
-                        <i class="fa-solid fa-ghost text-4xl text-gray-700 mb-3"></i>
-                        <p class="text-gray-500 text-sm">Nenhum exercício encontrado.</p>
-                    </div>`;
+            if (filtrados.length === 0) {
+                container.innerHTML = `<div class="text-center text-gray-500 py-10 text-sm">Nenhum exercício encontrado.</div>`;
                 return;
             }
 
-            dados.forEach(ex => {
-                // Card Style Premium
-                container.innerHTML += `
-                    <div onclick="abrirExercicio('${ex.id}')" class="bg-scanfit-card p-4 rounded-2xl border border-gray-800 flex items-center justify-between cursor-pointer hover:border-scanfit-green/50 active:scale-[0.98] transition-all group">
-                        <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center text-scanfit-green/60 group-hover:text-scanfit-green transition-colors">
-                                <i class="fa-solid fa-dumbbell text-xl"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-white text-sm leading-tight mb-1">${ex.nome}</h4>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-[9px] px-2 py-0.5 rounded bg-gray-800 text-gray-400 font-medium uppercase tracking-wider">${ex.grupo}</span>
-                                    ${ex.video ? '<i class="fa-solid fa-play text-[8px] text-gray-500"></i>' : ''}
-                                </div>
-                            </div>
+            // Injeção em lote (Batch HTML string building) = 100x mais rápido
+            let htmlHTML = "";
+            filtrados.forEach(ex => {
+                htmlHTML += `
+                    <div onclick="abrirExercicio('${ex.id}')" class="bg-scanfit-card border border-gray-800 rounded-2xl p-3 flex items-center gap-4 active:scale-95 transition-transform shadow-sm cursor-pointer">
+                        <div class="w-14 h-14 rounded-xl bg-black border border-gray-800 flex flex-col items-center justify-center text-gray-600 flex-shrink-0 relative overflow-hidden">
+                            ${ex.video ? '<i class="fa-solid fa-play text-scanfit-green/50 text-xl"></i>' : '<i class="fa-solid fa-image text-gray-600"></i>'}
                         </div>
-                        <div class="w-8 h-8 rounded-full bg-scanfit-green/10 flex items-center justify-center text-scanfit-green">
+                        <div class="flex-1 min-w-0">
+                            <span class="text-[9px] font-bold text-scanfit-green uppercase tracking-wider block mb-0.5">${ex.grupo}</span>
+                            <h3 class="text-sm font-bold text-white truncate">${ex.nome}</h3>
+                        </div>
+                        <div class="w-8 h-8 rounded-full bg-scanfit-dark flex items-center justify-center border border-gray-800 text-gray-400 flex-shrink-0">
                             <i class="fa-solid fa-chevron-right text-xs"></i>
                         </div>
                     </div>
                 `;
             });
+            
+            container.innerHTML = htmlHTML;
         }
 
         /* ==========================================
-           VISUALIZAÇÃO DE EXERCÍCIO
+           VISUALIZAÇÃO DE EXERCÍCIO (PLAYER MÍDIA)
            ========================================== */
+        function formatarLinkMidia(url) {
+            if(!url) return '';
+            // Corrige link do Drive para modo Imagem Direta
+            if (url.includes('drive.google.com/file/d/')) {
+                const match = url.match(/\/d\/(.*?)\//);
+                if (match) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+            }
+            // Transforma watch comum do YT em Embed
+            if(url.includes('watch?v=')) return url.replace('watch?v=', 'embed/');
+            if(url.includes('youtu.be/')) return url.replace('youtu.be/', 'youtube.com/embed/');
+            return url;
+        }
+
         function abrirExercicio(id) {
-            const ex = dbExercicios.find(item => item.id === id);
-            if (!ex) {
-                mostrarToast("Exercício não encontrado.");
-                navigate('library');
+            exercicioAtual = dbExercicios.find(item => item.id === id);
+            if (!exercicioAtual) {
+                mostrarToast("Exercício não encontrado", "fa-triangle-exclamation");
                 return;
             }
 
-            exercicioAtual = ex;
+            document.getElementById('ex-nome').innerText = exercicioAtual.nome;
+            document.getElementById('ex-grupo').innerText = exercicioAtual.grupo;
             
-            // Textos
-            document.getElementById('ex-title').textContent = ex.nome;
-            document.getElementById('ex-muscle').textContent = ex.grupo;
+            // Formata as instruções (aceita ponto e vírgula ou barra reta)
+            const passosRaw = exercicioAtual.execucao || "Preste atenção na postura.;Siga o movimento com controle.";
+            const separador = passosRaw.includes(';') ? ';' : '|';
+            const passos = passosRaw.split(separador).filter(p => p.trim() !== "");
+            
+            const ul = document.getElementById('ex-instrucoes');
+            ul.innerHTML = passos.map((passo, idx) => `
+                <li class="flex items-start gap-3 bg-black/40 border border-gray-800/50 p-3.5 rounded-xl">
+                    <span class="flex-shrink-0 w-6 h-6 rounded-full bg-scanfit-card border border-scanfit-green/50 flex items-center justify-center text-[10px] font-extrabold text-scanfit-green mt-0.5 shadow-[0_0_10px_rgba(143,227,2,0.1)]">
+                        ${idx + 1}
+                    </span>
+                    <p class="text-[13px] text-gray-300 font-medium leading-relaxed">${passo.trim()}</p>
+                </li>
+            `).join('');
 
-            // Passos (Checklist style)
-            const stepsContainer = document.getElementById('ex-steps');
-            stepsContainer.innerHTML = '';
-            if(ex.execucao && ex.execucao.length > 0) {
-                ex.execucao.forEach((step, index) => {
-                    stepsContainer.innerHTML += `
-                        <li class="flex items-start gap-3 bg-black/20 p-3 rounded-xl border border-white/5">
-                            <div class="w-5 h-5 rounded-full bg-scanfit-green/10 border border-scanfit-green/30 flex items-center justify-center text-[10px] text-scanfit-green font-bold flex-shrink-0 mt-0.5">${index + 1}</div>
-                            <span class="text-sm text-gray-300 leading-relaxed">${step}</span>
-                        </li>
-                    `;
-                });
+            // Dicas
+            const tipsDiv = document.getElementById('ex-tips-container');
+            if (exercicioAtual.dicas && exercicioAtual.dicas.trim() !== "") {
+                const dicasSeparadas = exercicioAtual.dicas.split(';').join('<br>• ');
+                document.getElementById('ex-tips').innerHTML = '• ' + dicasSeparadas;
+                tipsDiv.classList.remove('hidden');
             } else {
-                stepsContainer.innerHTML = '<li class="text-sm text-gray-500 italic">Siga o vídeo para execução.</li>';
+                tipsDiv.classList.add('hidden');
             }
 
-            // Dicas (Warning box)
-            const tipsContainer = document.getElementById('ex-tips');
-            const tipsWrapper = document.getElementById('ex-tips-container');
-            tipsContainer.innerHTML = '';
-            
-            if(ex.dicas && ex.dicas.length > 0) {
-                tipsWrapper.classList.remove('hidden');
-                ex.dicas.forEach(tip => {
-                    tipsContainer.innerHTML += `
-                        <li class="flex items-start gap-2">
-                            <div class="min-w-[4px] h-[4px] rounded-full bg-yellow-500 mt-2"></div>
-                            <span>${tip}</span>
-                        </li>
-                    `;
-                });
-            } else {
-                tipsWrapper.classList.add('hidden');
-            }
-
-            atualizarEstadoBotaoTreino(ex.id);
-            
-            // Logica inteligente de Mídia: Tenta abrir Video primeiro, se não tiver, tenta GIF
-            if (ex.video) {
-                setMediaType('video');
-            } else if (ex.gif) {
-                setMediaType('gif');
-            } else {
-                setMediaType('video'); // Vai mostrar placeholder de "Sem Mídia"
-            }
+            // Atualiza Botão do Treino
+            atualizarBotaoTreinoUI();
 
             navigate('exercise');
+            
+            // Prioriza Vídeo, se não tiver, tenta GIF
+            if(exercicioAtual.video) alternarMidia('video');
+            else if(exercicioAtual.gif) alternarMidia('gif');
+            else alternarMidia('nenhum');
         }
 
-        function setMediaType(type) {
-            currentMediaType = type;
-            const container = document.getElementById('ex-media-container');
-            const btnVid = document.getElementById('tab-video');
-            const btnGif = document.getElementById('tab-gif');
-            const indicator = document.getElementById('toggle-indicator');
-
-            // UI Toggle Animation
-            if (type === 'video') {
-                btnVid.classList.replace('text-gray-400', 'text-white');
-                btnGif.classList.replace('text-white', 'text-gray-400');
-                indicator.style.transform = 'translateX(0)';
-            } else {
-                btnGif.classList.replace('text-gray-400', 'text-white');
-                btnVid.classList.replace('text-white', 'text-gray-400');
-                indicator.style.transform = 'translateX(100%)';
-            }
+        function alternarMidia(tipo) {
+            const container = document.getElementById('media-container');
+            const btnVid = document.getElementById('btn-video');
+            const btnGif = document.getElementById('btn-gif');
             
-            container.innerHTML = ''; 
-
-            if (type === 'video') {
+            currentMediaType = tipo;
+            container.innerHTML = ''; // Limpa memória do iframe/img anterior
+            
+            // Estiliza botões
+            if (tipo === 'video') {
+                btnVid.className = "flex-1 py-3 rounded-xl text-sm font-bold bg-scanfit-green text-black transition-all shadow-md";
+                btnGif.className = "flex-1 py-3 rounded-xl text-sm font-bold text-gray-400 hover:text-white transition-all";
+                
                 if (exercicioAtual.video) {
-                    // Tratamento simples para converter link normal do YT em embed (se necessário)
-                    let vidUrl = exercicioAtual.video;
-                    if(vidUrl.includes('watch?v=')) vidUrl = vidUrl.replace('watch?v=', 'embed/');
-                    if(vidUrl.includes('youtu.be/')) vidUrl = vidUrl.replace('youtu.be/', 'youtube.com/embed/');
-                    
-                    container.innerHTML = `<iframe src="${vidUrl}" class="absolute inset-0 w-full h-full object-cover" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                    const url = formatarLinkMidia(exercicioAtual.video);
+                    container.innerHTML = `<iframe src="${url}" class="absolute inset-0 w-full h-full object-cover" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
                 } else {
-                    container.innerHTML = `<div class="text-gray-600 flex flex-col items-center"><i class="fa-solid fa-video-slash text-3xl mb-2"></i><span class="text-xs font-medium uppercase tracking-widest">Sem Vídeo</span></div>`;
+                    container.innerHTML = `<div class="text-gray-500 flex flex-col items-center"><i class="fa-solid fa-video-slash text-2xl mb-1"></i><span class="text-[10px] uppercase font-bold tracking-widest">Sem Vídeo</span></div>`;
                 }
-            } else {
+            } else if(tipo === 'gif') {
+                btnGif.className = "flex-1 py-3 rounded-xl text-sm font-bold bg-scanfit-green text-black transition-all shadow-md";
+                btnVid.className = "flex-1 py-3 rounded-xl text-sm font-bold text-gray-400 hover:text-white transition-all";
+                
                 if (exercicioAtual.gif) {
-                    container.innerHTML = `<img src="${exercicioAtual.gif}" alt="GIF" class="absolute inset-0 w-full h-full object-cover">`;
+                    const url = formatarLinkMidia(exercicioAtual.gif);
+                    container.innerHTML = `<img src="${url}" class="absolute inset-0 w-full h-full object-cover opacity-90">`;
                 } else {
-                    container.innerHTML = `<div class="text-gray-600 flex flex-col items-center"><i class="fa-regular fa-image text-3xl mb-2"></i><span class="text-xs font-medium uppercase tracking-widest">Sem GIF</span></div>`;
+                    container.innerHTML = `<div class="text-gray-500 flex flex-col items-center"><i class="fa-solid fa-image text-2xl mb-1"></i><span class="text-[10px] uppercase font-bold tracking-widest">Sem GIF</span></div>`;
                 }
             }
         }
 
         /* ==========================================
-           LÓGICA "MEU TREINO" (Local Storage)
+           GERENCIAMENTO DO TREINO
            ========================================== */
         function toggleTreinoAtual() {
             if(!exercicioAtual) return;
-            const id = exercicioAtual.id;
             
-            if (treinoSalvo.includes(id)) {
-                treinoSalvo = treinoSalvo.filter(i => i !== id);
-                mostrarToast("Removido do treino", "fa-bookmark"); // Icone out
+            const index = treinoSalvo.findIndex(t => t.id === exercicioAtual.id);
+            if (index > -1) {
+                treinoSalvo.splice(index, 1);
+                mostrarToast("Removido do treino", "fa-minus-circle");
             } else {
-                treinoSalvo.push(id);
-                mostrarToast("Adicionado ao treino!", "fa-solid fa-bookmark"); // Icone in
+                treinoSalvo.push({
+                    id: exercicioAtual.id,
+                    nome: exercicioAtual.nome,
+                    grupo: exercicioAtual.grupo
+                });
+                mostrarToast("Adicionado ao treino!", "fa-check-circle");
             }
             
             localStorage.setItem('scanfit_treino', JSON.stringify(treinoSalvo));
-            atualizarEstadoBotaoTreino(id);
+            atualizarBotaoTreinoUI();
             atualizarBadgeTreino();
         }
 
-        function removerDoTreino(id, event) {
-            event.stopPropagation();
-            treinoSalvo = treinoSalvo.filter(i => i !== id);
-            localStorage.setItem('scanfit_treino', JSON.stringify(treinoSalvo));
-            renderizarTreino();
-            atualizarBadgeTreino();
+        function atualizarBotaoTreinoUI() {
+            const btn = document.getElementById('btn-add-workout');
+            if(!btn || !exercicioAtual) return;
             
-            // Se estiver na tela do exercício e remover por lá
-            if(exercicioAtual && exercicioAtual.id === id) {
-                atualizarEstadoBotaoTreino(id);
-            }
-        }
-
-        function limparTreino() {
-            if(confirm("Deseja esvaziar seu treino de hoje?")) {
-                treinoSalvo = [];
-                localStorage.setItem('scanfit_treino', JSON.stringify(treinoSalvo));
-                renderizarTreino();
-                atualizarBadgeTreino();
-            }
-        }
-
-        function atualizarEstadoBotaoTreino(id) {
-            const btn = document.getElementById('btn-add-treino');
-            if(!btn) return;
-
-            if(treinoSalvo.includes(id)) {
-                btn.className = "flex-shrink-0 w-12 h-12 rounded-full bg-scanfit-green border border-scanfit-green flex items-center justify-center transition-all duration-300 ml-4 shadow-[0_0_15px_rgba(143,227,2,0.4)]";
-                btn.innerHTML = `<i class="fa-solid fa-bookmark text-black text-lg"></i>`;
+            const estaNoTreino = treinoSalvo.some(t => t.id === exercicioAtual.id);
+            if (estaNoTreino) {
+                btn.className = "flex-shrink-0 w-10 h-10 rounded-xl bg-scanfit-green text-black flex items-center justify-center shadow-[0_0_15px_rgba(143,227,2,0.3)] active:scale-90 transition-all";
+                btn.innerHTML = '<i class="fa-solid fa-check text-lg"></i>';
             } else {
-                btn.className = "flex-shrink-0 w-12 h-12 rounded-full bg-scanfit-card border border-gray-700 flex items-center justify-center transition-all duration-300 ml-4";
-                btn.innerHTML = `<i class="fa-regular fa-bookmark text-gray-400 text-lg hover:text-white"></i>`;
+                btn.className = "flex-shrink-0 w-10 h-10 rounded-xl bg-scanfit-card border border-gray-800 text-gray-400 hover:text-white flex items-center justify-center shadow-sm active:scale-90 transition-all";
+                btn.innerHTML = '<i class="fa-solid fa-plus text-lg"></i>';
             }
         }
 
         function atualizarBadgeTreino() {
             const badge = document.getElementById('badge-treino');
-            if(treinoSalvo.length > 0) {
-                badge.innerText = treinoSalvo.length;
-                badge.classList.replace('scale-0', 'scale-100');
-            } else {
-                badge.classList.replace('scale-100', 'scale-0');
-            }
+            const qty = treinoSalvo.length;
+            badge.innerText = qty;
+            if(qty > 0) badge.classList.remove('scale-0');
+            else badge.classList.add('scale-0');
         }
 
         function renderizarTreino() {
-            const container = document.getElementById('workout-list');
+            const container = document.getElementById('lista-treino');
             const emptyState = document.getElementById('workout-empty');
             
-            container.innerHTML = '';
-
-            if(treinoSalvo.length === 0) {
+            if (treinoSalvo.length === 0) {
+                container.innerHTML = '';
                 emptyState.classList.remove('hidden');
                 emptyState.classList.add('flex');
-            } else {
-                emptyState.classList.add('hidden');
-                emptyState.classList.remove('flex');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            emptyState.classList.remove('flex');
+
+            let html = "";
+            treinoSalvo.forEach((ex, index) => {
+                html += `
+                    <div class="bg-black border border-gray-800 rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden">
+                        <div class="absolute left-0 top-0 bottom-0 w-1 bg-scanfit-green"></div>
+                        <div class="w-8 h-8 rounded-full bg-scanfit-card border border-gray-800 flex items-center justify-center text-xs font-bold text-gray-400 flex-shrink-0">
+                            ${index + 1}
+                        </div>
+                        <div class="flex-1 min-w-0 pr-2">
+                            <span class="text-[9px] font-bold text-gray-500 uppercase tracking-wider block mb-0.5">${ex.grupo}</span>
+                            <h3 class="text-sm font-bold text-white truncate">${ex.nome}</h3>
+                        </div>
+                        <button onclick="abrirExercicio('${ex.id}')" class="bg-scanfit-green text-black px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-wide shadow-sm active:scale-95 transition-transform">
+                            TREINAR
+                        </button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function limparTreino() {
+            if(confirm("Deseja esvaziar seu treino atual?")) {
+                treinoSalvo = [];
+                localStorage.removeItem('scanfit_treino');
+                atualizarBadgeTreino();
+                renderizarTreino();
+                mostrarToast("Treino limpo", "fa-trash");
+            }
+        }
+
+        /* ==========================================
+           PERFIL E CALCULADORA DE IMC
+           ========================================== */
+        function carregarPerfilUI() {
+            if(perfilDados.nome) document.getElementById('prof-nome').value = perfilDados.nome;
+            if(perfilDados.idade) document.getElementById('prof-idade').value = perfilDados.idade;
+            if(perfilDados.objetivo) document.getElementById('prof-objetivo').value = perfilDados.objetivo;
+            if(perfilDados.peso) document.getElementById('prof-peso').value = perfilDados.peso;
+            if(perfilDados.altura) document.getElementById('prof-altura').value = perfilDados.altura;
+            calcularIMC();
+        }
+
+        function salvarPerfil() {
+            perfilDados = {
+                nome: document.getElementById('prof-nome').value,
+                idade: document.getElementById('prof-idade').value,
+                objetivo: document.getElementById('prof-objetivo').value,
+                peso: document.getElementById('prof-peso').value,
+                altura: document.getElementById('prof-altura').value,
+            };
+            localStorage.setItem('scanfit_perfil', JSON.stringify(perfilDados));
+            mostrarToast("Dados salvos com sucesso!");
+        }
+
+        function calcularIMC() {
+            const peso = parseFloat(document.getElementById('prof-peso').value);
+            const alturaCm = parseFloat(document.getElementById('prof-altura').value);
+            const divResultado = document.getElementById('imc-result-container');
+            const valorEl = document.getElementById('imc-valor');
+            const statusEl = document.getElementById('imc-status');
+
+            if(peso > 0 && alturaCm > 0) {
+                const alturaM = alturaCm / 100;
+                const imc = (peso / (alturaM * alturaM)).toFixed(1);
+                valorEl.innerText = imc;
+                divResultado.classList.remove('hidden');
+
+                let status = "";
+                let colorClass = "";
                 
-                treinoSalvo.forEach((id, index) => {
-                    const ex = dbExercicios.find(item => item.id === id);
-                    if(ex) {
-                        container.innerHTML += `
-                            <div onclick="abrirExercicio('${ex.id}')" class="bg-scanfit-card p-4 rounded-2xl border border-gray-800 flex items-center justify-between cursor-pointer hover:border-gray-600 transition group">
-                                <div class="flex items-center gap-4">
-                                    <span class="w-6 text-center text-sm font-bold text-gray-600 group-hover:text-scanfit-green transition-colors">${index + 1}</span>
-                                    <div>
-                                        <h4 class="font-bold text-white text-sm leading-tight">${ex.nome}</h4>
-                                        <span class="text-[9px] text-gray-500 font-medium uppercase tracking-wider">${ex.grupo}</span>
-                                    </div>
-                                </div>
-                                <button onclick="removerDoTreino('${ex.id}', event)" class="w-8 h-8 rounded-full bg-black flex items-center justify-center text-gray-500 hover:text-red-500 transition-colors">
-                                    <i class="fa-solid fa-times text-sm"></i>
-                                </button>
-                            </div>
-                        `;
-                    }
-                });
-            }
-        }
+                if (imc < 18.5) { status = "Abaixo do peso"; colorClass = "text-blue-500"; }
+                else if (imc < 24.9) { status = "Normal"; colorClass = "text-scanfit-green"; }
+                else if (imc < 29.9) { status = "Sobrepeso"; colorClass = "text-yellow-500"; }
+                else { status = "Obesidade"; colorClass = "text-red-500"; }
 
-        /* ==========================================
-           ÁREA ADMINISTRATIVA
-           ========================================== */
-        function verificarSenha() {
-            const pass = document.getElementById('admin-pass').value;
-            if(pass === 'ScanFit@123') {
-                document.getElementById('admin-login').classList.add('hidden');
-                document.getElementById('admin-panel').classList.remove('hidden');
-                document.getElementById('admin-panel').classList.add('flex');
-                document.getElementById('admin-url-input').value = planilhaUrlOriginal;
-                document.getElementById('admin-pass').value = '';
+                statusEl.innerText = status;
+                statusEl.className = `text-[10px] font-bold uppercase tracking-wider ${colorClass}`;
             } else {
-                mostrarToast("Senha incorreta!", "fa-lock text-red-500");
+                divResultado.classList.add('hidden');
             }
-        }
-
-        function salvarPlanilhaAdmin() {
-            const novaUrl = document.getElementById('admin-url-input').value.trim();
-            if(novaUrl) {
-                planilhaUrlOriginal = novaUrl;
-                localStorage.setItem('scanfit_sheets_url', planilhaUrlOriginal);
-                carregarDadosPlanilha().then(() => {
-                    mostrarToast("Link salvo! Dados atualizados.");
-                });
-            }
-        }
-
-        function sairAdmin() {
-            document.getElementById('admin-panel').classList.add('hidden');
-            document.getElementById('admin-panel').classList.remove('flex');
-            document.getElementById('admin-login').classList.remove('hidden');
-            navigate('landing');
         }
 
         /* ==========================================
-           UI & FEEDBACK
+           PAINEL ADMIN SECRETO
            ========================================== */
-        function mostrarToast(mensagem, classesIcone = "fa-circle-check text-scanfit-green") {
-            const toast = document.getElementById('toast');
-            document.getElementById('toast-msg').innerText = mensagem;
-            
-            const iconEl = document.getElementById('toast-icon');
-            iconEl.className = `fa-solid ${classesIcone} text-base`;
-            
-            toast.classList.remove('-translate-y-10', 'opacity-0');
-            toast.classList.add('translate-y-4', 'opacity-100');
-            
-            setTimeout(() => {
-                toast.classList.remove('translate-y-4', 'opacity-100');
-                toast.classList.add('-translate-y-10', 'opacity-0');
-            }, 3000);
+        function checkAdminPassword() {
+            const pwd = document.getElementById('admin-password').value;
+            if (pwd === 'ScanFit@123') {
+                document.getElementById('admin-auth').classList.add('hidden');
+                document.getElementById('admin-panel').classList.remove('hidden');
+                document.getElementById('admin-url').value = localStorage.getItem('scanfit_sheet_url') || DEFAULT_SHEET_URL;
+                document.getElementById('admin-password').value = '';
+            } else {
+                mostrarToast("Senha incorreta", "fa-xmark");
+            }
+        }
+
+        function salvarURLPlanilha() {
+            const url = document.getElementById('admin-url').value.trim();
+            if(url) {
+                localStorage.setItem('scanfit_sheet_url', url);
+                mostrarToast("Configuração Salva!");
+                sincronizarGoogleSheets(); // Força update
+            }
         }
     </script>
 </body>
